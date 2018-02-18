@@ -1,0 +1,27 @@
+build: false
+
+environment:
+
+  matrix:
+    - PYTHON_VERSION: 2.7
+      MINICONDA: C:\Miniconda3-x64
+      REQUIREMENTS: "pytest"
+    - PYTHON_VERSION: 3.6
+      MINICONDA: C:\Miniconda3-x64
+      REQUIREMENTS: "pytest pandas"
+
+
+init:
+  - "ECHO %PYTHON_VERSION% %MINICONDA%"
+
+install:
+  - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda create -n neurtu-env %REQUIREMENTS% python=%PYTHON_VERSION%
+  - activate neurtu-env
+  - pip install .
+
+test_script:
+  - activate neurtu-env
+  - pytest 

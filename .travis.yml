@@ -5,42 +5,43 @@ sudo: false
 matrix:
   include:
     - python: 2.7
-      env: REQUIREMENTS="pytest pandas" 
+      env: REQUIREMENTS="pytest numpy pandas" 
     - python: 3.4
-      env: REQUIREMENTS="pytest pandas" 
+      env: REQUIREMENTS="pytest numpy pandas" 
     - python: 3.5
-      env: REQUIREMENTS="pytest"
+      env: REQUIREMENTS="pytest flake8"  RUN_FLAKE8=true
     - python: 3.6
-      env: REQUIREMENTS="pytest flake8"
-    - python: 3.6
-      env: REQUIREMENTS="pytest pandas tqdm" 
-    #- language: generic
-    #  os: osx
-    #  python: 3.6
-    #  #env: PYTHON_VERSION="3.6" REQUIREMENTS="pytest pandas tqdm" 
+      env: REQUIREMENTS="pytest numpy pandas tqdm" 
+    - language: generic
+      os: osx
+      python: 3.6
+      env: PYTHON_VERSION="3.6" REQUIREMENTS="pytest numpy pandas tqdm" 
 
 install:
   - |
       if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then # Install Miniconda
-         curl -s -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda$PY-latest-MacOSX-x86_64.sh;
-         bash miniconda.sh -b -p $HOME/miniconda && rm miniconda.sh;
-         export PATH="$HOME/miniconda/bin:$PATH"; hash -r;
+         curl -s -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+         bash miniconda.sh -b -p $HOME/miniconda && rm miniconda.sh
+         export PATH="$HOME/miniconda/bin:$PATH"
+         hash -r
          conda update conda -y
-         conda create -n neurtu-env ${REQUIREMENTS} python=${PYTHON_VERSION}
+         conda create -y -n neurtu-env ${REQUIREMENTS} nomkl python=${PYTHON_VERSION}
          source activate neurtu-env
+      else
+         pip install ${REQUIREMENTS}
       fi
   - pip install .
 
 script:
   - |
-      if [ -z ${RUN_FLAKE8} ]; then
+      if [ ${RUN_FLAKE8} = true ]; then
          flake8 neurtu/
       fi
   - |
       if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
          source activate neurtu-env
       fi
-  - pytest
+  - pytest --doctest-modules neurtu/
 
 cache:
   - directories:

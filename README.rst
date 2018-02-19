@@ -19,7 +19,7 @@ neurtu requires Python 2.7 or 3.4+, it can be installed with,
 
 .. code::
 
-   pip install git+https://github.com/symerio/neurtu.git
+   pip install neurtu
 
 `pandas <https://pandas.pydata.org/pandas-docs/stable/install.html#installation>`_ is an optional (but highly recommended) dependency.
 
@@ -66,6 +66,7 @@ Single benchmark
        Benchmark(wall_time=True, peak_memory=True)(
               delayed(sorted)(range(100000)), number=3)
 
+
     currently supported metrics are ``wall_time``, ``peak_memory`` as well as ``cpu_time`` (Linux and Mac OS only).
 
 
@@ -80,7 +81,8 @@ The ``timeit``, ``memit`` and ``Benchmark`` also accept as input sequence of del
     >>> from neurtu import timeit, delayed
     >>> timeit(delayed(sorted, tags={'N': N})(range(N)) for N in [1000, 10000, 100000])
 
-whill will produce a ``pandas.DataFrame`` with the measures if pandas is installed and a list of dictionaries otherwise.
+
+which will produce a ``pandas.DataFrame`` with the measures if pandas is installed and a list of dictionaries otherwise.
 
      
 

@@ -44,6 +44,12 @@ def test_memit_overhead():
     assert res['peak_memory_mean'] < 0.15
 
 
+def test_timeit_sequence():
+
+    res = timeit(delayed(sleep)(0.1) for _ in range(2))
+    print(res)
+
+
 def test_memit_array_allocation():
     np = pytest.importorskip('numpy')
 

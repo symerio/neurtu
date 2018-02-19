@@ -54,8 +54,15 @@ class Delayed(object):
 
     def __repr__(self):
         parent_repr = self.__obj.__repr__()
-        args_repr = ['%s' % val for val in self.__args]
-        kwargs_repr = ['%s=%s' % (key, val)
+
+        def _str2str(x):
+            if isinstance(x, str) and not x.strip():
+                return "'%s'" % x
+            else:
+                return x
+
+        args_repr = ['%s' % _str2str(val) for val in self.__args]
+        kwargs_repr = ['%s=%s' % (key, _str2str(val))
                        for key, val in self.__kwargs.items()]
 
         args_kwargs_repr = ','.join(args_repr + kwargs_repr)
@@ -63,23 +70,22 @@ class Delayed(object):
         kwargs_repr = ','.join(kwargs_repr)
 
         if self.__func is None:
-            parent_repr = '<Delayed(%s)>' % (parent_repr.replace('<', '')
-                                                        .replace('>', ''))
             if self.__tags:
-                return parent_repr + '   [tags: {}]'.format(self.__tags)
+                tags_repr = ', tags=%s' % self.__tags
             else:
-                return parent_repr
+                tags_repr = ''
+            parent_repr = '<Delayed(%s%s)>' % (parent_repr.replace('<', '')
+                                                          .replace('>', ''),
+                                               tags_repr)
+            return parent_repr
         elif self.__func == '__call__':
-            return (parent_repr + '\n' +
-                    ' ->(%s)' % args_kwargs_repr)
+            return (parent_repr[:-1] + '(%s)>' % str(args_kwargs_repr))
         elif self.__func == '__getattr__':
-            return (parent_repr + '\n' +
-                    ' ->.%s' % args_repr)
+            return (parent_repr[:-1] + '.%s>' % args_repr)
         elif self.__func == '__getitem__':
-            return (parent_repr + '\n' +
-                    ' ->[%s]' % args_repr)
+            return (parent_repr[:-1] + '[%s]>' % args_repr)
         else:
-            return (parent_repr + '\n' +
+            return (parent_repr +
                     ' -> {} args={} kwargs={}'
                     .format(self.__func, args_repr, kwargs_repr))
 
@@ -125,10 +131,7 @@ def delayed(obj, tags=None):
 
     >>> x = delayed('some string').split(' ')[::-1]
     >>> x
-    <Delayed('some string')>
-     ->.split
-     ->( )
-     ->[slice(None, None, -1)]
+    <Delayed('some string').split(' ')[slice(None, None, -1)]>
     >>> x.compute()
     ['string', 'some']
 

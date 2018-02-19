@@ -89,13 +89,15 @@ class Benchmark(object):
         number of repeated measurements
     aggregate : bool, default=True
       whether to aggregate repeated runs.
+    to_dataframe : bool, default=None
+      whether to convert parametric results to a daframe
     **kwargs : dict
       custom evaluation metrics of the form ``key=func``,
       where ``key`` is the metric name, and the ``func`` is the evaluation
       metric that accepts a ``Delayed`` object: ``func(obj)``.
     """
     def __init__(self, wall_time=None, cpu_time=False, peak_memory=False,
-                 repeat=3, aggregate=True, **kwargs):
+                 repeat=3, aggregate=True, to_dataframe=None, **kwargs):
         metrics = {}
         for name, params, func in [
                 ('wall_time', wall_time, measure_wall_time),
@@ -121,6 +123,7 @@ class Benchmark(object):
             metrics['wall_time'] = {'func': measure_wall_time}
         self.metrics = metrics
         self.aggregate = aggregate
+        self.to_dataframe = to_dataframe
 
     def __call__(self, obj):
         """Evaluate metrics on the delayed object
@@ -149,6 +152,7 @@ class Benchmark(object):
         db = []
         for obj_el, (name, params) in itertools.product(
                 obj, self.metrics.items()):
+            params = params.copy()
             repeat = params.pop('repeat', 3)
             func = params.pop('func')
             func_partial = partial(func, **params)
@@ -195,7 +199,7 @@ class Benchmark(object):
             pd = None
 
         if iterable_input:
-            if self.to_dataframe and pd is not None:
+            if self.to_dataframe is not False and pd is not None:
                 return pd.DataFrame(db)
             else:
                 return db
@@ -236,6 +240,11 @@ def timeit(obj, timer='wall_time', number=1, repeat=3,
         number of repeated measurements
     aggregate : bool
         aggregate results between repeated measurements
+
+    Returns
+    -------
+    res : list or pandas.DataFrame
+        computed timing
     """
 
     if timer == 'wall_time':

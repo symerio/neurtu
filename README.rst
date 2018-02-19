@@ -33,19 +33,27 @@ Single benchmark
 
    .. code:: python
 
-       from neurtu import timeit, delayed
+       >>> from neurtu import timeit, delayed
+       >>> timeit(delayed(sum)(range(100000)), repeat=3)
+       {'wall_time_max': 0.0018,
+		'wall_time_mean': 0.0017,
+		'wall_time_min': 0.0015,
+		'wall_time_std': 0.00011}
 
-       timeit(delayed(sum)(range(100000))
+   which will internally cll the ``timeit.Timer`` class. Similarly to IPython's ``%timeit``, the number of runs
+   will be determined at runtime to mitigate the finite resolution of the timer (on Windows it's 16 ms!). In addition,
+   each evaluation will be here repeated 3 times (default) to measure statistics.
 
-   which internally will call the ``timeit.Timer`` class used by ipython.
-
-2. Measuring the memory use,
+2. Similarity, the memory use can be measured with,
 
    .. code:: python
 
-       from neurtu import memit, delayed
-
-       memit(delayed(sorted)(range(100000)))
+       >>> from neurtu import memit, delayed
+       >>> memit(delayed(sorted)(list(range(100000))))
+       {'peak_memory_max': 0.765,
+        'peak_memory_mean': 0.757,
+        'peak_memory_min': 0.753,
+        'peak_memory_std': 0.00552}
 
 3. Generic benchmarks
 
@@ -56,12 +64,25 @@ Single benchmark
        from neurtu import Benchmark, delayed
 
        Benchmark(wall_time=True, peak_memory=True)(
-              delayed(sorted)(range(100000)), number=100)
+              delayed(sorted)(range(100000)), number=3)
+
+    currently supported metrics are ``wall_time``, ``peak_memory`` as well as ``cpu_time`` (Linux and Mac OS only).
 
 
 
 Parametric benchmarks
 ^^^^^^^^^^^^^^^^^^^^^
+
+The ``timeit``, ``memit`` and ``Benchmark`` also accept as input sequence of delayed objects, tagged with the tag parameter,
+
+.. code:: python
+
+    >>> from neurtu import timeit, delayed
+    >>> timeit(delayed(sorted, tags={'N': N})(range(N)) for N in [1000, 10000, 100000])
+
+whill will produce a ``pandas.DataFrame`` with the measures if pandas is installed and a list of dictionaries otherwise.
+
+     
 
 Delayed evaluation
 ^^^^^^^^^^^^^^^^^^

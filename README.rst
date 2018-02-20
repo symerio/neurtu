@@ -87,7 +87,7 @@ which will produce a ``pandas.DataFrame`` with the measures if pandas is install
 Delayed evaluation
 ^^^^^^^^^^^^^^^^^^
 
-The ``delayed`` function follows the `dask.delayed <http://dask.pydata.org/en/latest/delayed-api.html>`_ API, though with a significantly lighter functionality: it models operations as a chained list of delayed objects that are not evaluated untill the ``compute()`` method is called.
+The ``delayed`` function is a partial implementation of the `dask.delayed <http://dask.pydata.org/en/latest/delayed-api.html>`_ API. It models operations as a chained list of delayed objects that are not evaluated untill the ``compute()`` method is called.
 
 .. code:: python
 
@@ -99,7 +99,7 @@ The ``delayed`` function follows the `dask.delayed <http://dask.pydata.org/en/la
   ['string', 'some']
 
 Attrubute access, indexing as well as function and method calls are supported. 
-Left function composition (e.g. ``func(delayed(obj))``) and binary operations (e.g. ``delayed(op) + 1``) are currently not supported, neither is the composition of multiple delayed objects, use `dask.delayed` for it.
+Left function composition (e.g. ``func(delayed(obj))``) and binary operations (e.g. ``delayed(op) + 1``) are currently not supported, neither is the composition of multiple delayed objects, use `dask.delayed` for those.
 
 
 Scientific computing usage

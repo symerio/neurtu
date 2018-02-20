@@ -150,48 +150,48 @@ class Benchmark(object):
                               'iterable of delayed objects!') % obj)
 
         db = []
-        for obj_el, (name, params) in itertools.product(
-                obj, self.metrics.items()):
-            params = params.copy()
-            repeat = params.pop('repeat', 3)
-            func = params.pop('func')
-            func_partial = partial(func, **params)
-            tags = obj_el.get_tags()
+        for obj_el in obj:
+            for (name, params) in self.metrics.items():
+                params = params.copy()
+                repeat = params.pop('repeat', 3)
+                func = params.pop('func')
+                func_partial = partial(func, **params)
+                tags = obj_el.get_tags()
 
-            res = [func_partial(obj_el) for _ in range(repeat)]
+                res = [func_partial(obj_el) for _ in range(repeat)]
 
-            if name in ['wall_time', 'cpu_time']:
-                res_mean = _mean(res)
-                if sys.platform in ['win32', 'darwin']:
-                    timer_threashold = 1.0
-                else:
-                    timer_threashold = 0.2
-                if res_mean < timer_threashold:
-                    # if the measured timeing is below the threashold,
-                    # it won't be very accurate. Increase the
-                    # `number` parameter of Timer.timeit to get
-                    # result in the order of 500 ms
+                if name in ['wall_time', 'cpu_time']:
+                    res_mean = _mean(res)
+                    if sys.platform in ['win32', 'darwin']:
+                        timer_threashold = 1.0
+                    else:
+                        timer_threashold = 0.2
+                    if res_mean < timer_threashold:
+                        # if the measured timeing is below the threashold,
+                        # it won't be very accurate. Increase the
+                        # `number` parameter of Timer.timeit to get
+                        # result in the order of 500 ms
 
-                    corrected_number = int(timer_threashold / res_mean)
-                    params = params.copy()
-                    params['number'] = corrected_number
-                    func_partial = partial(func, **params)
-                    res = [func_partial(obj_el) for _ in range(repeat)]
+                        corrected_number = int(timer_threashold / res_mean)
+                        params = params.copy()
+                        params['number'] = corrected_number
+                        func_partial = partial(func, **params)
+                        res = [func_partial(obj_el) for _ in range(repeat)]
 
-            if self.aggregate:
-                row = {name + '_min': min(res),
-                       name + '_max': max(res),
-                       name + '_mean': _mean(res),
-                       }
-                if len(res) > 1:
-                    row[name + '_std'] = _stddev(res)
-                row.update(tags)
-                db.append(row)
-            else:
-                for k_interation, res_iteration in enumerate(res):
-                    row = {name: res_iteration}
+                if self.aggregate:
+                    row = {name + '_min': min(res),
+                           name + '_max': max(res),
+                           name + '_mean': _mean(res),
+                           }
+                    if len(res) > 1:
+                        row[name + '_std'] = _stddev(res)
                     row.update(tags)
                     db.append(row)
+                else:
+                    for k_interation, res_iteration in enumerate(res):
+                        row = {name: res_iteration}
+                        row.update(tags)
+                        db.append(row)
 
         try:
             import pandas as pd

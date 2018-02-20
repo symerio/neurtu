@@ -5,7 +5,7 @@ from neurtu import __version__
 
 setup(
     name='neurtu',
-    description='A simpe benchmarking tool',
+    description='A simple benchmarking tool',
     long_description=open('README.rst').read(),
     version=__version__,
     author='Roman Yurchak',
@@ -13,7 +13,7 @@ setup(
     packages=find_packages(),
     url='https://github.com/symerio/neurtu',
     install_requires=['memory_profiler', 'psutil', 'tqdm'],
-    classifiers=['Development Status :: 5 - Production/Stable',
+    classifiers=['Development Status :: 4 - Beta',
                  'Intended Audience :: Science/Research',
                  'Intended Audience :: Developers',
                  'License :: OSI Approved :: BSD License',

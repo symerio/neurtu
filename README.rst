@@ -4,7 +4,7 @@ neurtu
 .. image:: https://travis-ci.org/symerio/neurtu.svg?branch=master
     :target: https://travis-ci.org/symerio/neurtu
 
-.. image:: https://ci.appveyor.com/api/projects/status/947sx73ph2v4v7ej?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/2i1dx8fi3bue4qwl?svg=true
     :target: https://ci.appveyor.com/project/rth/neurtu/branch/master
 
 Simple performance measurement tool

@@ -41,7 +41,7 @@ Single benchmark
    will be determined at runtime to mitigate the finite resolution of the timer (on Windows it's 16 ms!). In addition,
    each evaluation will be here repeated 3 times (default) to measure statistics.
 
-2. Similarity, the memory use can be measured with,
+2. Similarily, the memory use can be measured with,
 
    .. code:: python
 

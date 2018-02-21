@@ -1,6 +1,12 @@
 neurtu
 ======
 
+.. image:: https://img.shields.io/pypi/v/neurtu.svg
+    :target: https://pypi.python.org/pypi/neurtu
+
+.. image:: https://readthedocs.org/projects/neurtu/badge/?version=latest
+    :target: http://neurtu.readthedocs.io/en/latest/
+
 .. image:: https://travis-ci.org/symerio/neurtu.svg?branch=master
     :target: https://travis-ci.org/symerio/neurtu
 
@@ -9,6 +15,9 @@ neurtu
 
 Simple performance measurement tool
 
+
+
+Documentation can be found at http://neurtu.readthedocs.io/en/latest/.
 
 **Note:** this package is still in early developpement phase, the API may change in the future. Feel free to open an issue for any comments or feedback.
 

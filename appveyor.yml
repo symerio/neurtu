@@ -20,7 +20,7 @@ install:
   - conda update -q conda
   - conda create -n neurtu-env %REQUIREMENTS% python=%PYTHON_VERSION%
   - activate neurtu-env
-  - pip install .
+  - pip install -e .
 
 test_script:
   - activate neurtu-env

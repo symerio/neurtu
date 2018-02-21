@@ -11,7 +11,7 @@ Single benchmark
        >>> timeit(delayed(sum)(range(100000)), repeat=3)
        {'wall_time_max': 0.0018, 'wall_time_mean': 0.0017, 'wall_time_min': 0.0015, 'wall_time_std': 0.00011}
 
-   which will internally cll the ``timeit.Timer`` class. Similarly to IPython's ``%timeit``, the number of runs
+   which will internally call :class:`timeit.Timer`. Similarly to IPython's ``%timeit``, the number of runs
    will be determined at runtime to mitigate the finite resolution of the timer (on Windows it's 16 ms!). In addition,
    each evaluation will be here repeated 3 times (default) to measure statistics.
 
@@ -25,7 +25,7 @@ Single benchmark
 
 3. Generic benchmarks
 
-   Both ``timeit`` and ``memit`` are aliases for the ``Benchmark`` class which can be used with one or several metrics,
+   Both :func:`timeit` and :func:`memit` are aliases for the :class:`Benchmark` class which can be used with one or several metrics,
 
    .. code:: python
 
@@ -42,7 +42,7 @@ Single benchmark
 Parametric benchmarks
 ^^^^^^^^^^^^^^^^^^^^^
 
-The ``timeit``, ``memit`` and ``Benchmark`` also accept as input sequence of delayed objects, tagged with the ``tags`` parameter,
+The :func:`timeit`, :func:`memit` and :class:`Benchmark`` also accept as input sequence of delayed objects, tagged with the ``tags`` parameter,
 
 .. code:: python
 
@@ -61,7 +61,7 @@ which will produce a ``pandas.DataFrame`` with the measures if pandas is install
 Delayed evaluation
 ^^^^^^^^^^^^^^^^^^
 
-The ``delayed`` function is a partial implementation of the `dask.delayed <http://dask.pydata.org/en/latest/delayed-api.html>`_ API. It models operations as a chained list of delayed objects that are not evaluated untill the ``compute()`` method is called.
+The :func:`delayed`` function is a partial implementation of the :func:`dask.delayed` API. It models operations as a chained list of delayed objects that are not evaluated untill the ``compute()`` method is called.
 
 .. code:: python
 
@@ -73,4 +73,4 @@ The ``delayed`` function is a partial implementation of the `dask.delayed <http:
   ['string', 'some']
 
 Attrubute access, indexing as well as function and method calls are supported. 
-Left function composition (e.g. ``func(delayed(obj))``) and binary operations (e.g. ``delayed(op) + 1``) are currently not supported, neither is the composition of multiple delayed objects, use `dask.delayed` for those.
+Left function composition (e.g. ``func(delayed(obj))``) and binary operations (e.g. ``delayed(op) + 1``) are currently not supported, neither is the composition of multiple delayed objects, use :func:`dask.delayed` for those.

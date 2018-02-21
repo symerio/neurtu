@@ -19,7 +19,7 @@ Simple performance measurement tool
 
 Documentation can be found at http://neurtu.readthedocs.io/en/latest/.
 
-**Note:** this package is still in early developpement phase, the API may change in the future. Feel free to open an issue for any comments or feedback.
+**Note:** this package is still in early development phase, the API may change in the future. Feel free to open an issue for any comments or feedback.
 
 Installation
 ------------
@@ -46,11 +46,11 @@ Single benchmark
        >>> timeit(delayed(sum)(range(100000)), repeat=3)
        {'wall_time_max': 0.0018, 'wall_time_mean': 0.0017, 'wall_time_min': 0.0015, 'wall_time_std': 0.00011}
 
-   which will internally cll the ``timeit.Timer`` class. Similarly to IPython's ``%timeit``, the number of runs
+   which will internally call ``timeit.Timer``. Similarly to IPython's ``%timeit``, the number of runs
    will be determined at runtime to mitigate the finite resolution of the timer (on Windows it's 16 ms!). In addition,
    each evaluation will be here repeated 3 times (default) to measure statistics.
 
-2. Similarily, the memory use can be measured with,
+2. Similarly, the memory use can be measured with,
 
    .. code:: python
 
@@ -96,7 +96,7 @@ which will produce a ``pandas.DataFrame`` with the measures if pandas is install
 Delayed evaluation
 ^^^^^^^^^^^^^^^^^^
 
-The ``delayed`` function is a partial implementation of the `dask.delayed <http://dask.pydata.org/en/latest/delayed-api.html>`_ API. It models operations as a chained list of delayed objects that are not evaluated untill the ``compute()`` method is called.
+The ``delayed`` function is a partial implementation of the `dask.delayed <http://dask.pydata.org/en/latest/delayed-api.html>`_ API. It models operations as a chained list of delayed objects that are not evaluated until the ``compute()`` method is called.
 
 .. code:: python
 
@@ -107,7 +107,7 @@ The ``delayed`` function is a partial implementation of the `dask.delayed <http:
   >>> x.compute()
   ['string', 'some']
 
-Attrubute access, indexing as well as function and method calls are supported. 
+Attribute access, indexing as well as function and method calls are supported. 
 Left function composition (e.g. ``func(delayed(obj))``) and binary operations (e.g. ``delayed(op) + 1``) are currently not supported, neither is the composition of multiple delayed objects, use `dask.delayed` for those.
 
 

@@ -30,7 +30,7 @@ install:
       else
          pip install ${REQUIREMENTS}
       fi
-  - pip install .
+  - pip install -e .
 
 script:
   - |

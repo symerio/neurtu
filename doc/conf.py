@@ -43,13 +43,18 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinxcontrib.napoleon',
-    'sphinx.ext.linkcode'
+    'sphinx.ext.linkcode',
+    'sphinx.ext.intersphinx'
 ]
 
 
 autosummary_generate = True
 
 autodoc_default_flags = ['members', 'inherited-members']
+
+
+intersphinx_mapping = {'python': ('https://docs.python.org/3.6', None),
+                       'dask': ('https://dask.pydata.org/en/latest/', None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

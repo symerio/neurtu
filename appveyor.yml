@@ -24,4 +24,4 @@ install:
 
 test_script:
   - activate neurtu-env
-  - pytest
+  - pytest neurtu/

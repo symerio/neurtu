@@ -81,10 +81,10 @@ class Benchmark(object):
       other metric is enabled.
     cpu_time : {bool, dict}, default=False
       measure CPU time. When a dictionary, it is passed as parameters to the
-    `func:measure_cpu_time` function.
+      :func:`measure_cpu_time` function.
     peak_memory : {bool, dict}, default=False
       measure peak memory usage. When a dictionary, it is passed as parameters
-      to the `func:measure_peak_memory` function.
+      to the :func:`measure_peak_memory` function.
     repeat : int, default=3
         number of repeated measurements
     aggregate : bool, default=True
@@ -130,7 +130,7 @@ class Benchmark(object):
 
         Parameters
         ----------
-        obj: `class:Delayed` or iterable of `class:Delayed`
+        obj: :class:`Delayed` or iterable of :class:`Delayed`
           a delayed computation or an iterable of delayed computations
         """
         try:
@@ -210,7 +210,7 @@ class Benchmark(object):
 def memit(obj, repeat=3, interval=0.01, aggregate=True):
     """Measure the memory use.
 
-    This is an alias for `class:Benchmark(peak_memory=True)`.
+    This is an alias for :class:`Benchmark` with `peak_memory=True)`.
 
     Parameters
     ----------
@@ -228,7 +228,7 @@ def timeit(obj, timer='wall_time', number=1, repeat=3,
            aggregate=True):
     """A benchmark decorator
 
-    This is an alias for `class:Benchmark(wall_time=True)`.
+    This is an alias for :class:`Benchmark` with `wall_time=True`.
 
     Parameters
     ----------

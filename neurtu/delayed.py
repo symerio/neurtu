@@ -137,6 +137,7 @@ def delayed(obj, tags=None):
 
 
     Using tags
+
     >>> x = delayed([2, 3], tags={'a': 0}).sum()
     >>> x.get_tags()
     {'a': 0}

@@ -99,6 +99,14 @@ def test_multiple_metrics():
             assert res[name] >= 0
 
 
+def test_wall_user_time():
+    pytest.importorskip('resource')
+
+    bench = Benchmark(wall_time=True, cpu_time=True)
+    res = bench(delayed(sum)(range(10000)))
+    assert res['wall_time_mean'] == approx(res['cpu_time_mean'], rel=0.1)
+
+
 def test_non_aggregated():
     res = timeit(delayed(sleep)(0), to_dataframe=False,
                  aggregate=False)

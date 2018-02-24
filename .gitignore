@@ -6,3 +6,4 @@ build/
 _build/
 generated/
 .coverage
+coverage.xml

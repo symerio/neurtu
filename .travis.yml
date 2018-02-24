@@ -44,8 +44,8 @@ script:
       fi
   - pytest --doctest-modules --cov=neurtu neurtu/
 
-after_sucess:
-  - 
+after_success:
+  - |
     if [ ${RUN_COVERAGE} = true ]; then
         codecov
     fi

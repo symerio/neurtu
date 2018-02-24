@@ -45,11 +45,6 @@ def test_timeit_overhead():
 def test_wall_user_time():
     pytest.importorskip('resource')
 
-    bench = Benchmark(wall_time=True, cpu_time=True)
-    res = bench(delayed(sum)(range(10000)))
-    assert 'cpu_time_mean' in res
-    assert res['wall_time_mean'] == approx(res['cpu_time_mean'], rel=0.5)
-
     res = timeit(delayed(sleep)(0), timer='cpu_time')
     assert 'cpu_time_mean' in res
 
@@ -90,7 +85,7 @@ def test_dataframe_conversion(aggregate):
     repeat = 3
     aggregate = aggregate is not None
 
-    res = timeit((delayed(sleep)(0.1) for _ in range(N)),
+    res = timeit((delayed(sleep, tags={'idx': idx})(0.1) for idx in range(N)),
                  aggregate=aggregate, repeat=repeat)
 
     if pd is None:
@@ -134,7 +129,7 @@ def test_non_aggregated():
 
 def test_timeit_sequence():
 
-    res = timeit((delayed(sleep)(0.1) for _ in range(2)),
+    res = timeit((delayed(sleep, tags={'idx': idx})(0.1) for idx in range(2)),
                  to_dataframe=False)
     assert isinstance(res, list)
     for row in res:

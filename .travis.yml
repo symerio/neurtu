@@ -5,17 +5,17 @@ sudo: false
 matrix:
   include:
     - python: 2.7
-      env: REQUIREMENTS="pytest numpy pandas" 
+      env: REQUIREMENTS="numpy pandas" 
     - python: 3.4
-      env: REQUIREMENTS="pytest numpy pandas" 
+      env: REQUIREMENTS="numpy pandas" 
     - python: 3.5
-      env: REQUIREMENTS="pytest flake8"  RUN_FLAKE8=true
+      env: REQUIREMENTS="flake8"  RUN_FLAKE8=true
     - python: 3.6
-      env: REQUIREMENTS="pytest numpy pandas tqdm" 
+      env: REQUIREMENTS="numpy pandas tqdm"  RUN_COVERAGE=true
     - language: generic
       os: osx
       python: 3.6
-      env: PYTHON_VERSION="3.6" REQUIREMENTS="pytest numpy pandas tqdm" 
+      env: PYTHON_VERSION="3.6" REQUIREMENTS="numpy pandas tqdm" 
 
 install:
   - |
@@ -25,7 +25,7 @@ install:
          export PATH="$HOME/miniconda/bin:$PATH"
          hash -r
          conda update conda -y
-         conda create -y -n neurtu-env ${REQUIREMENTS} nomkl python=${PYTHON_VERSION}
+         conda create -y -n neurtu-env ${REQUIREMENTS} nomkl pytest-cov codecov pytest python=${PYTHON_VERSION}
          source activate neurtu-env
       else
          pip install ${REQUIREMENTS}
@@ -41,7 +41,13 @@ script:
       if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
          source activate neurtu-env
       fi
-  - pytest --doctest-modules neurtu/
+  - pytest --doctest-modules --cov=./ neurtu/
+
+after_sucess:
+  - 
+    if [ ${RUN_COVERAGE} = true ]; then
+        codecov
+    fi
 
 cache:
   - directories:

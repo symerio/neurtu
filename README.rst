@@ -5,7 +5,7 @@ neurtu
     :target: https://pypi.python.org/pypi/neurtu
 
 .. image:: https://readthedocs.org/projects/neurtu/badge/?version=latest
-    :target: http://neurtu.readthedocs.io/en/latest/
+    :target: http://neurtu.readthedocs.io/
 
 .. image:: https://travis-ci.org/symerio/neurtu.svg?branch=master
     :target: https://travis-ci.org/symerio/neurtu
@@ -20,7 +20,7 @@ Simple performance measurement tool
 
 
 
-See the `documentation <http://neurtu.readthedocs.io/en/latest/>`_ for more details.
+See the `documentation <http://neurtu.readthedocs.io/>`_ for more details.
 
 Installation
 ------------

@@ -7,7 +7,7 @@ matrix:
     - python: 2.7
       env: REQUIREMENTS="numpy pandas" 
     - python: 3.4
-      env: REQUIREMENTS="numpy pandas" 
+      env: REQUIREMENTS="numpy pandas==0.18.1" 
     - python: 3.5
       env: REQUIREMENTS="flake8"  RUN_FLAKE8=true
     - python: 3.6

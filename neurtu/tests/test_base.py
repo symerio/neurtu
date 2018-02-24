@@ -11,6 +11,8 @@ from pytest import approx
 from neurtu import timeit, memit, delayed, Benchmark
 from neurtu.utils import import_or_none
 
+# Timing tests
+
 
 def test_timeit_overhead():
 
@@ -40,6 +42,21 @@ def test_timeit_overhead():
         assert res['wall_time_std'] / res['wall_time_mean'] < 0.01
 
 
+def test_wall_user_time():
+    pytest.importorskip('resource')
+
+    bench = Benchmark(wall_time=True, cpu_time=True)
+    res = bench(delayed(sum)(range(10000)))
+    assert 'cpu_time_mean' in res
+    assert res['wall_time_mean'] == approx(res['cpu_time_mean'], rel=0.5)
+
+    res = timeit(delayed(sleep)(0), timer='cpu_time')
+    assert 'cpu_time_mean' in res
+
+
+# Memory based tests
+
+
 def test_memit_overhead():
     res = memit(delayed(sleep)(0.1))
     assert isinstance(res, dict)
@@ -48,16 +65,20 @@ def test_memit_overhead():
     assert res['peak_memory_mean'] < 0.15
 
 
-def test_timeit_sequence():
+def test_memit_array_allocation():
+    np = pytest.importorskip('numpy')
 
-    res = timeit((delayed(sleep)(0.1) for _ in range(2)),
-                 to_dataframe=False)
-    assert isinstance(res, list)
-    for row in res:
-        for key in ['min', 'max', 'mean', 'std']:
-            name = 'wall_time_' + key
-            assert name in row
-            assert row[name] > 0
+    N = 5000
+    double_size = np.ones(1).nbytes
+
+    def allocate_array():
+        X = np.ones((N, N))
+        sleep(0.1)
+        X[:] += 1
+
+    res = memit(delayed(allocate_array)())
+    assert res['peak_memory_mean'] == approx(N**2*double_size / 1024**2,
+                                             rel=0.01)
 
 
 @pytest.mark.parametrize('aggregate', ['aggregate', None])
@@ -99,14 +120,6 @@ def test_multiple_metrics():
             assert res[name] >= 0
 
 
-def test_wall_user_time():
-    pytest.importorskip('resource')
-
-    bench = Benchmark(wall_time=True, cpu_time=True)
-    res = bench(delayed(sum)(range(10000)))
-    assert res['wall_time_mean'] == approx(res['cpu_time_mean'], rel=0.1)
-
-
 def test_non_aggregated():
     res = timeit(delayed(sleep)(0), to_dataframe=False,
                  aggregate=False)
@@ -116,17 +129,28 @@ def test_non_aggregated():
         assert set(row.keys()) == set(['value', 'metric', 'repeat'])
 
 
-def test_memit_array_allocation():
-    np = pytest.importorskip('numpy')
+# Parametric benchmark testing
 
-    N = 5000
-    double_size = np.ones(1).nbytes
 
-    def allocate_array():
-        X = np.ones((N, N))
-        sleep(0.1)
-        X[:] += 1
+def test_timeit_sequence():
 
-    res = memit(delayed(allocate_array)())
-    assert res['peak_memory_mean'] == approx(N**2*double_size / 1024**2,
-                                             rel=0.01)
+    res = timeit((delayed(sleep)(0.1) for _ in range(2)),
+                 to_dataframe=False)
+    assert isinstance(res, list)
+    for row in res:
+        for key in ['min', 'max', 'mean', 'std']:
+            name = 'wall_time_' + key
+            assert name in row
+            assert row[name] > 0
+
+
+def test_untaged_sequence():
+
+    with pytest.raises(ValueError) as excinfo:
+        timeit(delayed(sleep)(0.1) for _ in range(2))
+    assert "please provide the tag parameter" in str(excinfo.value)
+
+    with pytest.raises(ValueError) as excinfo:
+        timeit([delayed(sleep, tags={'a': 1})(0.1),
+                delayed(sleep, tags={'a': 1})(0.1)])
+    assert "but only 1 unique tags were found" in str(excinfo.value)

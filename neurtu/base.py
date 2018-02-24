@@ -176,6 +176,29 @@ class Benchmark(object):
             raise ValueError(('obj=%s must be either a Delayed object or a '
                               'iterable of delayed objects!') % obj)
 
+        # convert the iterable to list
+        obj = list(obj)
+
+        # convert all tags to a (hashable) string to find duplicates
+        tags_all = []
+        for el in obj:
+            tags_el = []
+            for key, val in el.get_tags().items():
+                tags_el.append('%s:%s' % (key, val))
+            tags_all.append('|'.join(tags_el))
+        tags_all = list(set(tags_all))
+
+        # check that tags are unique
+        if len(obj) != len(tags_all):
+            if len(tags_all) == 1 and tags_all[0] == '':
+                raise ValueError('When bechmarking a sequence, please provide '
+                                 'the tag parameter for each delayed object '
+                                 'to uniquely identify them!')
+            else:
+                raise ValueError(('Input sequence has %s delayed objects, '
+                                  'but only %s unique tags were found!')
+                                 % (len(obj), len(tags_all)))
+
         db = []
         if self.aggregate:
             for obj_el in obj:
@@ -201,10 +224,9 @@ class Benchmark(object):
             params = params.copy()
             repeat = params.pop('repeat')
             func = params.pop('func')
-            func_partial = partial(func, **params)
             tags = obj.get_tags()
 
-            res = [func_partial(obj) for _ in range(repeat)]
+            res = [func(obj, **params) for _ in range(repeat)]
 
             if name in ['wall_time', 'cpu_time']:
                 res = _validate_timer_precision(res, func, obj,

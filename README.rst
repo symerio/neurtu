@@ -20,9 +20,7 @@ Simple performance measurement tool
 
 
 
-Documentation can be found at http://neurtu.readthedocs.io/en/latest/.
-
-**Note:** this package is still in early development phase, the API may change in the future. Feel free to open an issue for any comments or feedback.
+See the `documentation <http://neurtu.readthedocs.io/en/latest/>`_ for more details.
 
 Installation
 ------------
@@ -85,7 +83,8 @@ The ``timeit``, ``memit`` and ``Benchmark`` also accept as input sequence of del
 .. code:: python
 
     >>> from neurtu import timeit, delayed
-    >>> timeit(delayed(sorted, tags={'N': N})(range(N)) for N in [1000, 10000, 100000])
+    >>> timeit(delayed(sorted, tags={'N': N})(range(N))
+    ...        for N in [1000, 10000, 100000])
             N  wall_time_max  wall_time_mean  wall_time_min  wall_time_std
     0    1000       0.000024        0.000024       0.000024   5.951794e-08
     1   10000       0.000319        0.000319       0.000318   4.723035e-07
@@ -94,6 +93,15 @@ The ``timeit``, ``memit`` and ``Benchmark`` also accept as input sequence of del
 
 which will produce a ``pandas.DataFrame`` with the measures if pandas is installed and a list of dictionaries otherwise.
 
+In general, we can pass any iterable to the benchmark functions. For instance the above example is equivalent to,
+  
+.. code:: python
+
+    >>> from neurtu import timeit, delayed
+    >>> def delayed_cases():
+    ...     for N in [1000, 10000, 100000]:
+    ...         yield delayed(sorted, tags={'N': N})(range(N))
+    >>> timeit(delayed_cases())
      
 
 Delayed evaluation

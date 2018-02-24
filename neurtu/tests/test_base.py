@@ -35,9 +35,9 @@ def test_timeit_overhead():
     assert res['wall_time_min'] == approx(dt, abs=timer_precision)
 
     if sys.platform in ['win32', 'darwin']:
-        assert res['wall_time_std'] / res['wall_time_mean'] < 0.05
+        assert res['wall_time_std'] / res['wall_time_mean'] < 0.1
     else:
-        assert res['wall_time_std'] / res['wall_time_mean'] < 0.002
+        assert res['wall_time_std'] / res['wall_time_mean'] < 0.01
 
 
 def test_memit_overhead():

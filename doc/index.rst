@@ -14,6 +14,7 @@ Simple performance measurement tool
 
    installation
    quickstart
+   examples/index
    api
 
 

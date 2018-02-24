@@ -7,3 +7,5 @@ _build/
 generated/
 .coverage
 coverage.xml
+doc/examples/
+doc/generated_gallery/

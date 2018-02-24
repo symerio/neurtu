@@ -20,9 +20,7 @@ Simple performance measurement tool
 
 
 
-Documentation can be found at http://neurtu.readthedocs.io/en/latest/.
-
-**Note:** this package is still in early development phase, the API may change in the future. Feel free to open an issue for any comments or feedback.
+See the `documentation <http://neurtu.readthedocs.io/en/latest/>`_ for more details.
 
 Installation
 ------------

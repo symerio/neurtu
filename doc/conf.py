@@ -43,6 +43,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinxcontrib.napoleon',
+    'sphinx_gallery.gen_gallery',
     'sphinx.ext.linkcode',
     'sphinx.ext.intersphinx'
 ]
@@ -55,6 +56,19 @@ autodoc_default_flags = ['members', 'inherited-members']
 
 intersphinx_mapping = {'python': ('https://docs.python.org/3.6', None),
                        'dask': ('https://dask.pydata.org/en/latest/', None)}
+
+sphinx_gallery_conf = {
+    # path to your examples scripts
+    'examples_dirs': ['../examples'],
+    # path where to save gallery generated examples
+    'gallery_dirs': ['examples'],
+    # directory where function granular galleries are stored
+    'backreferences_dir': 'generated_gallery',
+
+    # Modules for which function level galleries are created.
+    'doc_module': ('neurtu'),
+    'filename_pattern': '.*\.py'
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

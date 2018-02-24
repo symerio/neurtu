@@ -1,3 +1,6 @@
+# neurtu, BSD 3 clause license
+# Authors: Roman Yurchak
+
 from __future__ import division
 
 import sys

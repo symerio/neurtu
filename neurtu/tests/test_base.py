@@ -1,3 +1,6 @@
+# neurtu, BSD 3 clause license
+# Authors: Roman Yurchak
+
 from __future__ import division
 
 import sys
@@ -5,7 +8,8 @@ from time import sleep
 import pytest
 from pytest import approx
 
-from neurtu import timeit, memit, delayed
+from neurtu import timeit, memit, delayed, Benchmark
+from neurtu.utils import import_or_none
 
 
 def test_timeit_overhead():
@@ -46,8 +50,62 @@ def test_memit_overhead():
 
 def test_timeit_sequence():
 
-    res = timeit(delayed(sleep)(0.1) for _ in range(2))
-    print(res)
+    res = timeit((delayed(sleep)(0.1) for _ in range(2)),
+                 to_dataframe=False)
+    assert isinstance(res, list)
+    for row in res:
+        for key in ['min', 'max', 'mean', 'std']:
+            name = 'wall_time_' + key
+            assert name in row
+            assert row[name] > 0
+
+
+@pytest.mark.parametrize('aggregate', ['aggregate', None])
+def test_dataframe_conversion(aggregate):
+
+    pd = import_or_none('pandas')
+
+    N = 2
+    repeat = 3
+    aggregate = aggregate is not None
+
+    res = timeit((delayed(sleep)(0.1) for _ in range(N)),
+                 aggregate=aggregate, repeat=repeat)
+
+    if pd is None:
+        assert isinstance(res, list)
+        if aggregate:
+            assert len(res) == N
+        else:
+            assert len(res) == N*repeat
+
+    else:
+        assert isinstance(res, pd.DataFrame)
+        if aggregate:
+            assert res.shape[0] == N
+        else:
+            assert res.shape[0] == N*repeat
+
+
+def test_multiple_metrics():
+
+    bench = Benchmark(wall_time=True, peak_memory=True)
+    res = bench(delayed(sleep)(0))
+    assert isinstance(res, dict)
+    for metric in ['wall_time', 'peak_memory']:
+        for key in ['min', 'max', 'mean', 'std']:
+            name = '_'.join([metric, key])
+            assert name in res
+            assert res[name] >= 0
+
+
+def test_non_aggregated():
+    res = timeit(delayed(sleep)(0), to_dataframe=False,
+                 aggregate=False)
+
+    assert isinstance(res, list)
+    for row in res:
+        assert set(row.keys()) == set(['value', 'metric', 'repeat'])
 
 
 def test_memit_array_allocation():

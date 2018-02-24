@@ -1,3 +1,6 @@
+# neurtu, BSD 3 clause license
+# Authors: Roman Yurchak
+
 
 class Delayed(object):
     """Delayed wrapper class

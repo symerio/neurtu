@@ -5,3 +5,4 @@ dist/
 build/
 _build/
 generated/
+.coverage

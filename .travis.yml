@@ -45,7 +45,10 @@ script:
   - pytest --doctest-modules --cov=./ neurtu/
 
 after_sucess:
-  - codecov
+  - 
+    if [ ${RUN_COVERAGE} = true ]; then
+        codecov
+    fi
 
 cache:
   - directories:

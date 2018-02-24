@@ -42,7 +42,7 @@ script:
       if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
          source activate neurtu-env
       fi
-  - pytest --doctest-modules --cov=./ neurtu/
+  - pytest --doctest-modules --cov=neurtu neurtu/
 
 after_sucess:
   - 

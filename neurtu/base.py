@@ -13,6 +13,7 @@ import gc
 
 from .delayed import _is_delayed
 from .compat import _mean, _stddev
+from .utils import import_or_none
 
 __version__ = '0.1.dev0'
 
@@ -59,7 +60,7 @@ def measure_cpu_time(obj, number=1):
         def timer():
             return resource.getrusage(resource.RUSAGE_SELF).ru_utime
     except ImportError:
-        raise NotImplementedError('CPU timer is not available on Windows.')
+        raise ValueError('CPU timer is not available on Windows.')
     timer = Timer(obj.compute, timer=timer)
     dt = timer.timeit(number)
     return dt / number
@@ -71,6 +72,28 @@ def measure_peak_memory(obj, **kwargs):
     # subtract the initial memory usage of the process
     usage = [el - usage[0] for el in usage]
     return max(usage)
+
+
+def _validate_timer_precision(res, func, obj_el, params, repeat):
+    """For timing measurements, increase the number of iterations
+    if the precision is unsufficient"""
+    res_mean = _mean(res)
+    if sys.platform in ['win32', 'darwin']:
+        timer_threashold = 1.0
+    else:
+        timer_threashold = 0.2
+    if res_mean < timer_threashold:
+        # if the measured timeing is below the threashold,
+        # it won't be very accurate. Increase the
+        # `number` parameter of Timer.timeit to get
+        # result in the order of 500 ms
+
+        corrected_number = int(timer_threashold / res_mean)
+        params = params.copy()
+        params['number'] = corrected_number
+        func_partial = partial(func, **params)
+        res = [func_partial(obj_el) for _ in range(repeat)]
+    return res
 
 
 class Benchmark(object):
@@ -93,7 +116,8 @@ class Benchmark(object):
     aggregate : bool, default=True
       whether to aggregate repeated runs.
     to_dataframe : bool, default=None
-      whether to convert parametric results to a daframe
+      whether to convert parametric results to a daframe. By default convert to
+      dataframe is pandas is installed.
     **kwargs : dict
       custom evaluation metrics of the form ``key=func``,
       where ``key`` is the metric name, and the ``func`` is the evaluation
@@ -153,55 +177,16 @@ class Benchmark(object):
                               'iterable of delayed objects!') % obj)
 
         db = []
-        for obj_el in obj:
-            for (name, params) in self.metrics.items():
-                params = params.copy()
-                repeat = params.pop('repeat', 3)
-                func = params.pop('func')
-                func_partial = partial(func, **params)
-                tags = obj_el.get_tags()
+        if self.aggregate:
+            for obj_el in obj:
+                db.append(self._evaluate_single_aggregated(obj_el))
+        else:
+            for obj_el in obj:
+                db += self._evaluate_single(obj_el)
 
-                res = [func_partial(obj_el) for _ in range(repeat)]
+        pd = import_or_none('pandas')
 
-                if name in ['wall_time', 'cpu_time']:
-                    res_mean = _mean(res)
-                    if sys.platform in ['win32', 'darwin']:
-                        timer_threashold = 1.0
-                    else:
-                        timer_threashold = 0.2
-                    if res_mean < timer_threashold:
-                        # if the measured timeing is below the threashold,
-                        # it won't be very accurate. Increase the
-                        # `number` parameter of Timer.timeit to get
-                        # result in the order of 500 ms
-
-                        corrected_number = int(timer_threashold / res_mean)
-                        params = params.copy()
-                        params['number'] = corrected_number
-                        func_partial = partial(func, **params)
-                        res = [func_partial(obj_el) for _ in range(repeat)]
-
-                if self.aggregate:
-                    row = {name + '_min': min(res),
-                           name + '_max': max(res),
-                           name + '_mean': _mean(res),
-                           }
-                    if len(res) > 1:
-                        row[name + '_std'] = _stddev(res)
-                    row.update(tags)
-                    db.append(row)
-                else:
-                    for k_interation, res_iteration in enumerate(res):
-                        row = {name: res_iteration}
-                        row.update(tags)
-                        db.append(row)
-
-        try:
-            import pandas as pd
-        except ImportError:
-            pd = None
-
-        if iterable_input:
+        if iterable_input or not self.aggregate:
             if self.to_dataframe is not False and pd is not None:
                 return pd.DataFrame(db)
             else:
@@ -209,8 +194,56 @@ class Benchmark(object):
         else:
             return db[0]
 
+    def _evaluate_single(self, obj):
+        """Evaluate a single delayed object"""
+        db = []
+        for (name, params) in self.metrics.items():
+            params = params.copy()
+            repeat = params.pop('repeat')
+            func = params.pop('func')
+            func_partial = partial(func, **params)
+            tags = obj.get_tags()
 
-def memit(obj, repeat=3, interval=0.01, aggregate=True):
+            res = [func_partial(obj) for _ in range(repeat)]
+
+            if name in ['wall_time', 'cpu_time']:
+                res = _validate_timer_precision(res, func, obj,
+                                                params, repeat)
+            for k_interation, res_iteration in enumerate(res):
+                row = {'repeat': res_iteration, 'metric': name,
+                       'value': res_iteration}
+                row.update(tags)
+                db.append(row)
+        return db
+
+    def _evaluate_single_aggregated(self, obj):
+        """Evaluate a single delayed object when
+        self.aggregated is True"""
+        row = {}
+        tags = obj.get_tags()
+        row.update(tags)
+
+        for (name, params) in self.metrics.items():
+            params = params.copy()
+            repeat = params.pop('repeat')
+            func = params.pop('func')
+
+            res = [func(obj, **params) for _ in range(repeat)]
+
+            if name in ['wall_time', 'cpu_time']:
+                res = _validate_timer_precision(res, func, obj,
+                                                params, repeat)
+
+            row[name + '_min'] = min(res)
+            row[name + '_max'] = max(res)
+            row[name + '_mean'] = _mean(res)
+            if len(res) > 1:
+                row[name + '_std'] = _stddev(res)
+        return row
+
+
+def memit(obj, repeat=3, interval=0.01, aggregate=True,
+          to_dataframe=None):
     """Measure the memory use.
 
     This is an alias for :class:`Benchmark` with `peak_memory=True)`.
@@ -221,14 +254,22 @@ def memit(obj, repeat=3, interval=0.01, aggregate=True):
         number of repeated measurements
     aggregate : bool
         aggregate results between repeated measurements
+    to_dataframe : bool, default=None
+      whether to convert parametric results to a daframe. By default convert to
+      dataframe is pandas is installed.
+
+    Returns
+    -------
+    res : dict, list or pandas.DataFrame
+        computed memory usage
     """
 
     return Benchmark(peak_memory={'repeat': repeat, 'interval': interval},
-                     aggregate=aggregate)(obj)
+                     aggregate=aggregate, to_dataframe=to_dataframe)(obj)
 
 
 def timeit(obj, timer='wall_time', number=1, repeat=3,
-           aggregate=True):
+           aggregate=True, to_dataframe=None):
     """A benchmark decorator
 
     This is an alias for :class:`Benchmark` with `wall_time=True`.
@@ -243,19 +284,24 @@ def timeit(obj, timer='wall_time', number=1, repeat=3,
         number of repeated measurements
     aggregate : bool
         aggregate results between repeated measurements
+    to_dataframe : bool, default=None
+      whether to convert parametric results to a daframe. By default convert to
+      dataframe is pandas is installed.
 
     Returns
     -------
-    res : list or pandas.DataFrame
+    res : dict, list or pandas.DataFrame
         computed timing
     """
 
+    args = {'aggregate': aggregate, 'to_dataframe': to_dataframe}
+
     if timer == 'wall_time':
         return Benchmark(wall_time={'number': number, 'repeat': repeat},
-                         aggregate=aggregate)(obj)
+                         **args)(obj)
     elif timer == 'cpu_time':
         return Benchmark(cpu_time={'number': number, 'repeat': repeat},
-                         aggregate=aggregate)(obj)
+                         **args)(obj)
     else:
         raise ValueError("timer=%s should be one of 'cpu_time', 'wall_time'"
                          % timer)

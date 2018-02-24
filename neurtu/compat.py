@@ -1,3 +1,5 @@
+# neurtu, BSD 3 clause license
+# Authors: Roman Yurchak
 
 try:
     import numpy as np

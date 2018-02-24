@@ -13,6 +13,9 @@ neurtu
 .. image:: https://ci.appveyor.com/api/projects/status/2i1dx8fi3bue4qwl?svg=true
     :target: https://ci.appveyor.com/project/rth/neurtu/branch/master
 
+.. image:: https://codecov.io/gh/symerio/neurtu/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/symerio/neurtu
+
 Simple performance measurement tool
 
 

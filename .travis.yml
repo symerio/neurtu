@@ -25,10 +25,11 @@ install:
          export PATH="$HOME/miniconda/bin:$PATH"
          hash -r
          conda update conda -y
-         conda create -y -n neurtu-env ${REQUIREMENTS} nomkl pytest-cov codecov pytest python=${PYTHON_VERSION}
+         conda create -y -n neurtu-env ${REQUIREMENTS} nomkl pytest-cov pytest python=${PYTHON_VERSION}
          source activate neurtu-env
+         pip install codecov
       else
-         pip install ${REQUIREMENTS}
+         pip install ${REQUIREMENTS} pytest-cov codecov pytest
       fi
   - pip install -e .
 
@@ -44,10 +45,7 @@ script:
   - pytest --doctest-modules --cov=./ neurtu/
 
 after_sucess:
-  - 
-    if [ ${RUN_COVERAGE} = true ]; then
-        codecov
-    fi
+  - codecov
 
 cache:
   - directories:

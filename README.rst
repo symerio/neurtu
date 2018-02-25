@@ -1,20 +1,9 @@
 neurtu
 ======
 
-.. image:: https://img.shields.io/pypi/v/neurtu.svg
-    :target: https://pypi.python.org/pypi/neurtu
+|pypi| |rdfd|
 
-.. image:: https://readthedocs.org/projects/neurtu/badge/?version=latest
-    :target: http://neurtu.readthedocs.io/
-
-.. image:: https://travis-ci.org/symerio/neurtu.svg?branch=master
-    :target: https://travis-ci.org/symerio/neurtu
-
-.. image:: https://ci.appveyor.com/api/projects/status/2i1dx8fi3bue4qwl?svg=true
-    :target: https://ci.appveyor.com/project/rth/neurtu/branch/master
-
-.. image:: https://codecov.io/gh/symerio/neurtu/branch/master/graph/badge.svg
-  :target: https://codecov.io/gh/symerio/neurtu
+|travis| |appveyor| |codecov|
 
 Simple performance measurement tool
 
@@ -148,3 +137,19 @@ License
 -------
 
 neurtu is released under the 3-clause BSD license.
+
+
+.. |pypi| image:: https://img.shields.io/pypi/v/neurtu.svg
+    :target: https://pypi.python.org/pypi/neurtu
+
+.. |rdfd| image:: https://readthedocs.org/projects/neurtu/badge/?version=latest
+    :target: http://neurtu.readthedocs.io/
+
+.. |travis| image:: https://travis-ci.org/symerio/neurtu.svg?branch=master
+    :target: https://travis-ci.org/symerio/neurtu
+
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/2i1dx8fi3bue4qwl?svg=true
+    :target: https://ci.appveyor.com/project/rth/neurtu/branch/master
+
+.. |codecov| image:: https://codecov.io/gh/symerio/neurtu/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/symerio/neurtu

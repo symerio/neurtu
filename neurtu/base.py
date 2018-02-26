@@ -179,14 +179,7 @@ class Benchmark(object):
         # convert the iterable to list
         obj = list(obj)
 
-        # convert all tags to a (hashable) string to find duplicates
-        tags_all = []
-        for el in obj:
-            tags_el = []
-            for key, val in el.get_tags().items():
-                tags_el.append('%s:%s' % (key, val))
-            tags_all.append('|'.join(tags_el))
-        tags_all = list(set(tags_all))
+        tags_all = list(set([self._hash_tags_env(el) for el in obj]))
 
         # check that tags are unique
         if len(obj) != len(tags_all):
@@ -217,6 +210,18 @@ class Benchmark(object):
         else:
             return db[0]
 
+    def _hash_tags_env(self, obj):
+        """Compute a string representation of tags and env of a delayed
+        object. This is used for duplicates detection."""
+        if not _is_delayed(obj):
+            raise ValueError
+        tags_el = []
+        for key, val in obj.get_tags().items():
+            tags_el.append('%s:%s' % (key, val))
+        for key, val in obj.get_env().items():
+            tags_el.append('%s:%s' % (key, val))
+        return '|'.join(tags_el)
+
     def _evaluate_single(self, obj):
         """Evaluate a single delayed object"""
         db = []
@@ -225,6 +230,7 @@ class Benchmark(object):
             repeat = params.pop('repeat')
             func = params.pop('func')
             tags = obj.get_tags()
+            env = obj.get_env()
 
             res = [func(obj, **params) for _ in range(repeat)]
 
@@ -235,6 +241,7 @@ class Benchmark(object):
                 row = {'repeat': res_iteration, 'metric': name,
                        'value': res_iteration}
                 row.update(tags)
+                row.update(env)
                 db.append(row)
         return db
 
@@ -242,8 +249,8 @@ class Benchmark(object):
         """Evaluate a single delayed object when
         self.aggregated is True"""
         row = {}
-        tags = obj.get_tags()
-        row.update(tags)
+        row.update(obj.get_tags())
+        row.update(obj.get_env())
 
         for (name, params) in self.metrics.items():
             params = params.copy()

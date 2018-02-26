@@ -102,6 +102,8 @@ def test_dataframe_conversion(aggregate):
         else:
             assert res.shape[0] == N*repeat
 
+# Handling of optional parameters
+
 
 def test_multiple_metrics():
 
@@ -123,6 +125,12 @@ def test_non_aggregated():
     for row in res:
         assert set(row.keys()) == set(['value', 'metric', 'repeat'])
 
+
+def test_benchmark_env():
+
+    res = timeit(delayed(sleep, env={'NEURTU_TEST': 'true'})(0))
+    assert 'NEURTU_TEST' in res
+    assert res['NEURTU_TEST'] == 'true'
 
 # Parametric benchmark testing
 

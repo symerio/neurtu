@@ -4,7 +4,6 @@
 from __future__ import division
 
 import sys
-from functools import partial
 import collections
 import timeit as cpython_timeit
 import gc
@@ -42,8 +41,10 @@ def _validate_timer_precision(res, func, obj_el, params, repeat):
         corrected_number = int(timer_threashold / res_mean)
         params = params.copy()
         params['number'] = corrected_number
-        func_partial = partial(func, **params)
-        res = [func_partial(obj_el) for _ in range(repeat)]
+        res = []
+        for _ in range(repeat):
+            gc.collect()
+            res.append(func(obj_el, **params))
     return res
 
 
@@ -228,9 +229,11 @@ class Benchmark(object):
             func = params.pop('func')
             tags = obj.get_tags()
             env = obj.get_env()
-            gc.collect()
 
-            res = [func(obj, **params) for _ in range(repeat)]
+            res = []
+            for _ in range(repeat):
+                gc.collect()
+                res.append(func(obj, **params))
 
             if name in ['wall_time', 'cpu_time']:
                 res = _validate_timer_precision(res, func, obj,
@@ -255,9 +258,11 @@ class Benchmark(object):
             params = params.copy()
             repeat = params.pop('repeat')
             func = params.pop('func')
-            gc.collect()
 
-            res = [func(obj, **params) for _ in range(repeat)]
+            res = []
+            for _ in range(repeat):
+                gc.collect()
+                res.append(func(obj, **params))
 
             if name in ['wall_time', 'cpu_time']:
                 res = _validate_timer_precision(res, func, obj,

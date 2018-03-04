@@ -1,4 +1,7 @@
 scikit-learn>=0.18
+scipy
+numpy
+pandas
 sphinx
 pillow
 recommonmark
@@ -7,4 +10,3 @@ sphinxcontrib-napoleon
 sphinx-gallery
 pillow
 matplotlib
-pandas

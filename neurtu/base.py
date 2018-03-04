@@ -8,12 +8,18 @@ import timeit as cpython_timeit
 import itertools
 from functools import partial
 import collections
-
 import gc
+
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = None
+
 
 from .delayed import _is_delayed
 from .compat import _mean, _stddev
 from .utils import import_or_none
+
 
 __version__ = '0.1.dev0'
 
@@ -96,6 +102,45 @@ def _validate_timer_precision(res, func, obj_el, params, repeat):
     return res
 
 
+class _ProgressBar(object):
+    """ Internal progress bar
+
+    Parameters
+    ----------
+    N : int
+      total number of iterations
+    delay: {bool, float}
+      if a number, and tqdm is installed, display the progress bar when the
+      total benchmark time is expected to be larger than the given number of
+      seconds. If False, the progress bar is not be displayed.
+    """
+    def __init__(self, N, delay):
+        self.t0 = cpython_timeit.default_timer()
+        self.delay = delay
+        self.N = N
+        self.idx = 0
+        self.pbar = None
+
+    def increment(self):
+        """
+        Decide whether to print a progress bar, update it if necessary
+        """
+        self.idx += 1
+        if tqdm is None or not self.delay:
+            pass
+        elif self.pbar is None:
+            dt = cpython_timeit.default_timer() - self.t0
+            if dt * self.N / self.idx > self.delay:
+                self.pbar = tqdm(total=self.N)
+                self.pbar.update(self.idx)
+        else:
+            self.pbar.update(1)
+
+    def close(self):
+        if self.pbar is not None:
+            self.pbar.close()
+
+
 class Benchmark(object):
     """Benchmark calculations
 
@@ -118,13 +163,18 @@ class Benchmark(object):
     to_dataframe : bool, default=None
       whether to convert parametric results to a daframe. By default convert to
       dataframe is pandas is installed.
+    progress_bar : {bool, float}, default=5.0
+      if a number, and tqdm is installed, display the progress bar when the
+      estimated benchmark time is larger than the given number of seconds.
+      If False, the progress bar will not be displayed.
     **kwargs : dict
       custom evaluation metrics of the form ``key=func``,
       where ``key`` is the metric name, and the ``func`` is the evaluation
       metric that accepts a ``Delayed`` object: ``func(obj)``.
     """
     def __init__(self, wall_time=None, cpu_time=False, peak_memory=False,
-                 repeat=3, aggregate=True, to_dataframe=None, **kwargs):
+                 repeat=3, aggregate=True, to_dataframe=None,
+                 progress_bar=5.0, **kwargs):
         metrics = {}
         for name, params, func in [
                 ('wall_time', wall_time, measure_wall_time),
@@ -151,6 +201,7 @@ class Benchmark(object):
         self.metrics = metrics
         self.aggregate = aggregate
         self.to_dataframe = to_dataframe
+        self.progress_bar = progress_bar
 
     def __call__(self, obj):
         """Evaluate metrics on the delayed object
@@ -160,12 +211,7 @@ class Benchmark(object):
         obj: :class:`Delayed` or iterable of :class:`Delayed`
           a delayed computation or an iterable of delayed computations
         """
-        try:
-            from tqdm import tqdm
-        except ImportError:
 
-            def tqdm(x):
-                return x
         if _is_delayed(obj):
             obj = [obj]
             iterable_input = False
@@ -193,12 +239,14 @@ class Benchmark(object):
                                  % (len(obj), len(tags_all)))
 
         db = []
+        pbar = _ProgressBar(len(obj)*len(self.metrics), self.progress_bar)
         if self.aggregate:
-            for obj_el in obj:
-                db.append(self._evaluate_single_aggregated(obj_el))
+            for idx, obj_el in enumerate(obj):
+                db.append(self._evaluate_single_aggregated(obj_el, pbar))
         else:
-            for obj_el in obj:
-                db += self._evaluate_single(obj_el)
+            for idx, obj_el in enumerate(obj):
+                db += self._evaluate_single(obj_el, pbar)
+        pbar.close()
 
         pd = import_or_none('pandas')
 
@@ -222,7 +270,7 @@ class Benchmark(object):
             tags_el.append('%s:%s' % (key, val))
         return '|'.join(tags_el)
 
-    def _evaluate_single(self, obj):
+    def _evaluate_single(self, obj, pbar):
         """Evaluate a single delayed object"""
         db = []
         for (name, params) in self.metrics.items():
@@ -243,9 +291,10 @@ class Benchmark(object):
                 row.update(tags)
                 row.update(env)
                 db.append(row)
+            pbar.increment()
         return db
 
-    def _evaluate_single_aggregated(self, obj):
+    def _evaluate_single_aggregated(self, obj, pbar):
         """Evaluate a single delayed object when
         self.aggregated is True"""
         row = {}
@@ -268,11 +317,12 @@ class Benchmark(object):
             row[name + '_mean'] = _mean(res)
             if len(res) > 1:
                 row[name + '_std'] = _stddev(res)
+            pbar.increment()
         return row
 
 
 def memit(obj, repeat=3, interval=0.01, aggregate=True,
-          to_dataframe=None):
+          to_dataframe=None, progress_bar=5.0):
     """Measure the memory use.
 
     This is an alias for :class:`Benchmark` with `peak_memory=True)`.
@@ -286,6 +336,10 @@ def memit(obj, repeat=3, interval=0.01, aggregate=True,
     to_dataframe : bool, default=None
       whether to convert parametric results to a daframe. By default convert to
       dataframe is pandas is installed.
+    progress_bar : {bool, float}, default=5.0
+      if a number, and tqdm is installed, display the progress bar when the
+      estimated benchmark time is larger than the given number of seconds.
+      If False, the progress bar will not be displayed.
 
     Returns
     -------
@@ -294,11 +348,12 @@ def memit(obj, repeat=3, interval=0.01, aggregate=True,
     """
 
     return Benchmark(peak_memory={'repeat': repeat, 'interval': interval},
-                     aggregate=aggregate, to_dataframe=to_dataframe)(obj)
+                     aggregate=aggregate, to_dataframe=to_dataframe,
+                     progress_bar=progress_bar)(obj)
 
 
 def timeit(obj, timer='wall_time', number=1, repeat=3,
-           aggregate=True, to_dataframe=None):
+           aggregate=True, to_dataframe=None, progress_bar=5.0):
     """A benchmark decorator
 
     This is an alias for :class:`Benchmark` with `wall_time=True`.
@@ -316,6 +371,10 @@ def timeit(obj, timer='wall_time', number=1, repeat=3,
     to_dataframe : bool, default=None
       whether to convert parametric results to a daframe. By default convert to
       dataframe is pandas is installed.
+    progress_bar : {bool, float}, default=5.0
+      if a number, and tqdm is installed, display the progress bar when the
+      estimated benchmark time is larger than the given number of seconds.
+      If False, the progress bar will not be displayed.
 
     Returns
     -------
@@ -323,7 +382,8 @@ def timeit(obj, timer='wall_time', number=1, repeat=3,
         computed timing
     """
 
-    args = {'aggregate': aggregate, 'to_dataframe': to_dataframe}
+    args = {'aggregate': aggregate, 'to_dataframe': to_dataframe,
+            'progress_bar': progress_bar}
 
     if timer == 'wall_time':
         return Benchmark(wall_time={'number': number, 'repeat': repeat},

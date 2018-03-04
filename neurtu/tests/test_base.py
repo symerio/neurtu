@@ -157,3 +157,18 @@ def test_untaged_sequence():
         timeit([delayed(sleep, tags={'a': 1})(0.1),
                 delayed(sleep, tags={'a': 1})(0.1)])
     assert "but only 1 unique tags were found" in str(excinfo.value)
+
+
+def test_progress_bar(capsys):
+    timeit((delayed(sleep, tags={'N': idx})(0.1) for idx in range(2)),
+           repeat=1)
+    out, err = capsys.readouterr()
+    out = out + err
+    assert len(out) == 0
+    timeit((delayed(sleep, tags={'N': idx})(0.1) for idx in range(2)),
+           progress_bar=1e-3, repeat=1)
+    out, err = capsys.readouterr()
+    out = out + err
+    assert len(out) > 0
+    assert '100%' in out
+    assert '2/2' in out

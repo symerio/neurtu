@@ -66,8 +66,8 @@ ax.set_title('Peak memory usage for LogisticRegression.fit')
 
 ##############################################################################
 #
-# Peak memory usage for "liblinear" and "newton-cg" appear to have
-# a polynomial scaling above 10000 samples, while the remaining solvers
+# Peak memory usage for "liblinear" and "newton-cg" appear to be significant
+# above 10000 samples, while the other solvers
 # use less memory than the detection threshold.
 # Note that these benchmarks do not account for the memory used by ``X`` and
 # ``y`` arrays.

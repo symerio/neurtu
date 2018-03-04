@@ -160,12 +160,13 @@ def test_untaged_sequence():
 
 
 def test_progress_bar(capsys):
-    timeit(delayed(sleep, tags={'N': idx})(0.1) for idx in range(2))
+    timeit((delayed(sleep, tags={'N': idx})(0.1) for idx in range(2)),
+           repeat=1)
     out, err = capsys.readouterr()
     out = out + err
     assert len(out) == 0
     timeit((delayed(sleep, tags={'N': idx})(0.1) for idx in range(2)),
-           progress_bar=1e-3)
+           progress_bar=1e-3, repeat=1)
     out, err = capsys.readouterr()
     out = out + err
     assert len(out) > 0

@@ -33,6 +33,6 @@ try:
     import numpy as np
     mean = np.mean
     stddev = np.std
-except ImportError:
+except ImportError:  # pragma: no cover
     mean = _mean
     stddev = _stddev

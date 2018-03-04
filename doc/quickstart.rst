@@ -13,9 +13,9 @@ Single benchmark
 
    which will internally call :class:`timeit.Timer`. Similarly to IPython's ``%timeit``, the number of runs
    will be determined at runtime to mitigate the finite resolution of the timer (on Windows it's 16 ms!). In addition,
-   each evaluation will be here repeated 3 times (default) to measure statistics.
+   each evaluation will be repeated 3 times to measure run time statistics.
 
-2. Similarity, the memory use can be measured with,
+2. Similarly, the memory use can be measured with,
 
    .. code:: python
 
@@ -25,14 +25,14 @@ Single benchmark
 
 3. Generic benchmarks
 
-   Both :func:`timeit` and :func:`memit` are aliases for the :class:`Benchmark` class which can be used with one or several metrics,
+   Both :func:`neurtu.timeit` and :func:`neurtu.memit` are aliases for the :class:`Benchmark` class which can be used with one or several metrics,
 
    .. code:: python
 
        from neurtu import Benchmark, delayed
 
        Benchmark(wall_time=True, peak_memory=True)(
-              delayed(sorted)(range(100000)), number=3)
+              delayed(sorted)(range(100000)))
 
 
    Currently supported metrics are ``wall_time``, ``peak_memory`` as well as ``cpu_time`` (Linux and Mac OS only).
@@ -42,7 +42,8 @@ Single benchmark
 Parametric benchmarks
 ^^^^^^^^^^^^^^^^^^^^^
 
-The :func:`timeit`, :func:`memit` and :class:`Benchmark`` also accept as input sequence of delayed objects, tagged with the ``tags`` parameter,
+The :func:`neurtu.timeit`, :func:`neurtu.memit` and :class:`neurtu.Benchmark`` also accept as input sequence of delayed objects, tagged with the ``tags`` parameter,
+This can typically be used to determine time or space complexity of some calculation,
 
 .. code:: python
 
@@ -54,14 +55,24 @@ The :func:`timeit`, :func:`memit` and :class:`Benchmark`` also accept as input s
     2  100000       0.003695        0.003686       0.003678   7.144085e-06
 
 
-which will produce a ``pandas.DataFrame`` with the measures if pandas is installed and a list of dictionaries otherwise.
+the results with be a ``pandas.DataFrame`` if pandas is installed and a list of dictionaries otherwise.
 
+In general, we can pass any iterable to the benchmark functions. For instance the above example is equivalent to,
+  
+.. code:: python
+
+    >>> from neurtu import timeit, delayed
+    >>> def delayed_cases():
+    ...     for N in [1000, 10000, 100000]:
+    ...         yield delayed(sorted, tags={'N': N})(range(N))
+    >>> timeit(delayed_cases())
      
 
 Delayed evaluation
 ^^^^^^^^^^^^^^^^^^
+Instead of working with a string statement or a callable as ``timeit.Timer`` does, neurtu evaluates delayed objects.
 
-The :func:`delayed`` function is a partial implementation of the :func:`dask.delayed` API. It models operations as a chained list of delayed objects that are not evaluated untill the ``compute()`` method is called.
+The :func:`delayed`` function is a partial implementation of the :func:`dask.delayed` API. It models operations as a chained list of delayed objects that are not evaluated until the ``compute()`` method is called.
 
 .. code:: python
 
@@ -72,5 +83,5 @@ The :func:`delayed`` function is a partial implementation of the :func:`dask.del
   >>> x.compute()
   ['string', 'some']
 
-Attrubute access, indexing as well as function and method calls are supported. 
+Attribute access, indexing as well as function and method calls are supported. 
 Left function composition (e.g. ``func(delayed(obj))``) and binary operations (e.g. ``delayed(op) + 1``) are currently not supported, neither is the composition of multiple delayed objects, use :func:`dask.delayed` for those.

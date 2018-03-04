@@ -56,8 +56,8 @@ def test_memit_overhead():
     res = memit(delayed(sleep)(0.1))
     assert isinstance(res, dict)
 
-    # measurement error is less than 0.15 MB
-    assert res['peak_memory_mean'] < 0.15
+    # measurement error is less than 0.5 MB
+    assert res['peak_memory_mean'] < 0.5
 
 
 def test_memit_array_allocation():
@@ -172,3 +172,17 @@ def test_progress_bar(capsys):
     assert len(out) > 0
     assert '100%' in out
     assert '2/2' in out
+
+
+def test_custom_metric():
+    with pytest.raises(ValueError) as excinfo:
+        Benchmark(other_timer=True)(delayed(sleep)(0.1))
+    assert 'other_timer=True is not a callable' in str(excinfo.value)
+
+    def custom_metric(obj):
+        return sum(obj.compute())
+
+    bench = Benchmark(custom_metric=custom_metric)
+    res = bench(delayed(range)(3))
+    assert res == {'custom_metric_min': 3, 'custom_metric_max': 3,
+                   'custom_metric_mean': 3.0, 'custom_metric_std': 0.0}

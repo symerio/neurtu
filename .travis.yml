@@ -5,29 +5,33 @@ sudo: false
 matrix:
   include:
     - python: 2.7
-      env: REQUIREMENTS="numpy pandas" 
+      env: REQUIREMENTS="numpy==1.8.0 pandas==0.19.0rc1"  INSTALLER="pip"
     - python: 3.4
-      env: REQUIREMENTS="numpy pandas==0.18.1" 
+      env: REQUIREMENTS="numpy pandas==0.18.1" INSTALLER="pip"
     - python: 3.5
-      env: REQUIREMENTS="flake8"  RUN_FLAKE8=true
+      env: REQUIREMENTS="flake8"  RUN_FLAKE8=true  INSTALLER="pip"
     - python: 3.6
-      env: REQUIREMENTS="numpy pandas tqdm"  RUN_COVERAGE=true
+      env: REQUIREMENTS="numpy pandas tqdm"  RUN_COVERAGE=true  INSTALLER="conda"
     - language: generic
       os: osx
       python: 3.6
-      env: PYTHON_VERSION="3.6" REQUIREMENTS="numpy pandas tqdm" 
+      env: PYTHON_VERSION="3.6" REQUIREMENTS="numpy pandas tqdm" INSTALLER="conda"
 
 install:
   - |
-      if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then # Install Miniconda
-         curl -s -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+      if [[ "$INSTALLER" == "conda" ]]; then
+         if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+            curl -s -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
+         else
+            curl -s -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+         fi
          bash miniconda.sh -b -p $HOME/miniconda && rm miniconda.sh
          export PATH="$HOME/miniconda/bin:$PATH"
          hash -r
          conda update conda -y
          conda create -y -n neurtu-env ${REQUIREMENTS} nomkl pytest-cov pytest python=${PYTHON_VERSION}
          source activate neurtu-env
-         pip install codecov
+         pip install codecov pytest-cov
       else
          pip install ${REQUIREMENTS} pytest-cov codecov pytest
       fi
@@ -35,14 +39,14 @@ install:
 
 script:
   - |
-      if [ ${RUN_FLAKE8} = true ]; then
-         flake8 neurtu/
+      if [[ "${RUN_FLAKE8}" == true ]]; then
+         flake8 --exclude=neurtu/externals/ neurtu/
       fi
   - |
-      if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      if [[ "$INSTALLER" == "conda" ]]; then
          source activate neurtu-env
       fi
-  - pytest --doctest-modules --cov=neurtu neurtu/
+  - pytest -s --doctest-modules --cov=neurtu neurtu/
 
 after_success:
   - |

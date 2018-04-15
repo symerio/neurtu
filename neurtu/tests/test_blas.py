@@ -7,6 +7,8 @@ import os
 from glob import glob
 import subprocess
 
+import pytest
+
 from neurtu.blas import detect_blas
 from neurtu.utils import import_or_none
 from neurtu.externals.shutil_which import which
@@ -16,10 +18,13 @@ ldd = which('ldd')
 np = import_or_none('numpy')
 
 
+@pytest.mark.skipif(np is None, reason='numpy not installed')
 def test_detect_blas():
     name, dll_path = detect_blas()
     assert name in ['openblas', 'mkl', 'blas', None]
+
     if name is not None:
+        assert dll_path is not None
         assert os.path.exists(dll_path)
 
     # Windows
@@ -31,7 +36,7 @@ def test_detect_blas():
             assert name == 'mkl'
 
     # Unix
-    if ldd and np:
+    if ldd and np and os.name != 'nt':
         np_linalg_path = os.path.dirname(np.linalg.__file__)
 
         # numpy.linalg._umath_linalg.*.so should be present for Numpy 1.7+

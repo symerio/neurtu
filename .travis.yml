@@ -5,13 +5,13 @@ sudo: false
 matrix:
   include:
     - python: 2.7
-      env: REQUIREMENTS="numpy pandas" 
+      env: REQUIREMENTS="numpy==1.7.2 pandas==0.16.2"  INSTALLER="pip"
     - python: 3.4
-      env: REQUIREMENTS="numpy pandas==0.18.1" 
+      env: REQUIREMENTS="numpy pandas==0.18.1" INSTALLER="pip"
     - python: 3.5
-      env: REQUIREMENTS="flake8"  RUN_FLAKE8=true
+      env: REQUIREMENTS="flake8"  RUN_FLAKE8=true  INSTALLER="conda"
     - python: 3.6
-      env: REQUIREMENTS="numpy pandas tqdm"  RUN_COVERAGE=true
+      env: REQUIREMENTS="numpy pandas tqdm"  RUN_COVERAGE=true  INSTALLER="conda"
     - language: generic
       os: osx
       python: 3.6
@@ -19,7 +19,7 @@ matrix:
 
 install:
   - |
-      if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then # Install Miniconda
+      if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
          curl -s -o miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
          bash miniconda.sh -b -p $HOME/miniconda && rm miniconda.sh
          export PATH="$HOME/miniconda/bin:$PATH"

@@ -9,7 +9,7 @@ import subprocess
 
 import pytest
 
-from neurtu.blas import detect_blas
+from neurtu.blas import detect_blas, Blas
 from neurtu.utils import import_or_none
 from neurtu.externals.shutil_which import which
 
@@ -52,3 +52,59 @@ def test_detect_blas():
         linked_libraries = (subprocess.check_output([ldd, np_linalg_dll])
                                       .decode('utf-8'))
         assert 'lib%s' % name in linked_libraries
+
+
+@pytest.mark.skipif(np is None, reason='numpy not installed')
+def test_mkl_set_threads():
+    name, dll_path = detect_blas()
+
+    mkl = Blas(name, dll_path)
+
+    mkl.get_version()
+
+    num_threads_0 = mkl.get_num_threads()
+    assert num_threads_0 > 0
+    assert isinstance(num_threads_0, int)
+
+    num_threads_1 = 1
+
+    mkl.set_num_threads(num_threads_1)
+
+    num_threads_2 = mkl.get_num_threads()
+    assert num_threads_2 == num_threads_1
+
+
+@pytest.mark.skipif(np is None, reason='numpy not installed')
+def test_openblas_set_threads():
+
+    mkl = Blas('openblas', "/home/rth/.miniconda3/envs/openblas-env/lib/libopenblas.so")
+
+    num_threads_0 = mkl.get_num_threads()
+    print(num_threads_0)
+    assert num_threads_0 > 0
+    assert isinstance(num_threads_0, int)
+
+    num_threads_1 = 1
+
+    mkl.set_num_threads(num_threads_1)
+
+    num_threads_2 = mkl.get_num_threads()
+    assert num_threads_2 == num_threads_1
+
+
+@pytest.mark.skipif(np is None, reason='numpy not installed')
+def test_blasref_set_threads():
+
+    mkl = Blas('blas', "/usr/lib64/libblas.so.3")
+
+    num_threads_0 = mkl.get_num_threads()
+    print(num_threads_0)
+    assert num_threads_0 > 0
+    assert isinstance(num_threads_0, int)
+
+    num_threads_1 = 1
+
+    mkl.set_num_threads(num_threads_1)
+
+    num_threads_2 = mkl.get_num_threads()
+    assert num_threads_2 == num_threads_1

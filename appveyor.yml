@@ -3,11 +3,17 @@ build: false
 environment:
 
   matrix:
-    - PYTHON_VERSION: 2.7
-      MINICONDA: C:\Miniconda3-x64
+    - PYTHON_VERSION: "2.7.x"
+      PYTHON_ARCH: "64"
+      MINICONDA: C:\Miniconda-x64
       REQUIREMENTS: "pytest numpy"
-    - PYTHON_VERSION: 3.6
-      MINICONDA: C:\Miniconda3-x64
+    - PYTHON_VERSION: "3.5.x"
+      PYTHON_ARCH: "32"
+      MINICONDA: C:\Miniconda35
+      REQUIREMENTS: "pytest numpy pandas"
+    - PYTHON_VERSION: "3.6.x"
+      PYTHON_ARCH: "64"
+      MINICONDA: C:\Miniconda36-x64
       REQUIREMENTS: "pytest numpy pandas"
 
 
@@ -17,10 +23,8 @@ init:
 install:
   - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
   - conda config --set always_yes yes --set changeps1 no
-  - conda create -n neurtu-env %REQUIREMENTS% python=%PYTHON_VERSION%
-  - activate neurtu-env
+  - conda install %REQUIREMENTS%
   - pip install -e .
 
 test_script:
-  - activate neurtu-env
   - pytest -s neurtu/

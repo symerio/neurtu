@@ -64,6 +64,7 @@ class Blas(object):
 
         if not os.path.isfile(dll_path):
             raise IOError('Path %s does not exist!' % dll_path)
+            
         self.dll = ctypes.cdll.LoadLibrary(self.dll_path)
         self.name = name
 

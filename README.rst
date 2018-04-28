@@ -7,7 +7,13 @@ neurtu
 
 Simple performance measurement tool
 
+neurtu is a Python benchmarking library with a unified interface for time and memory
+measurements. It aims to provide a convenient API similar to IPython's
+``%timeit`` magic command, but based on delayed evaluation. Parametric benchmarks
+can be used to estimate time and space complexity of algorithms, while pandas integration
+allows quick analysis and visualization of the results.
 
+*neurtu* means "to measure / evaluate" in Basque language.
 
 See the `documentation <http://neurtu.readthedocs.io/>`_ for more details.
 
@@ -38,7 +44,7 @@ Single benchmark
 
    which will internally call ``timeit.Timer``. Similarly to IPython's ``%timeit``, the number of runs
    will be determined at runtime to mitigate the finite resolution of the timer (on Windows it's 16 ms!). In addition,
-   each evaluation will be here repeated 3 times (default) to measure statistics.
+   each evaluation will be repeated 3 times to measure run time statistics.
 
 2. Similarly, the memory use can be measured with,
 
@@ -57,7 +63,7 @@ Single benchmark
        from neurtu import Benchmark, delayed
 
        Benchmark(wall_time=True, peak_memory=True)(
-              delayed(sorted)(range(100000)), number=3)
+              delayed(sorted)(range(100000)))
 
 
    Currently supported metrics are ``wall_time``, ``peak_memory`` as well as ``cpu_time`` (Linux and Mac OS only).
@@ -67,7 +73,8 @@ Single benchmark
 Parametric benchmarks
 ^^^^^^^^^^^^^^^^^^^^^
 
-The ``timeit``, ``memit`` and ``Benchmark`` also accept as input sequence of delayed objects, tagged with the ``tags`` parameter,
+The ``timeit``, ``memit`` and ``Benchmark`` also accept as input sequence of delayed objects, tagged with the ``tags`` parameter.
+This can typically be used to determine time or space complexity of some calculation,
 
 .. code:: python
 
@@ -80,7 +87,7 @@ The ``timeit``, ``memit`` and ``Benchmark`` also accept as input sequence of del
     2  100000       0.003695        0.003686       0.003678   7.144085e-06
 
 
-which will produce a ``pandas.DataFrame`` with the measures if pandas is installed and a list of dictionaries otherwise.
+the results with be a ``pandas.DataFrame`` if pandas is installed and a list of dictionaries otherwise.
 
 In general, we can pass any iterable to the benchmark functions. For instance the above example is equivalent to,
   
@@ -96,7 +103,9 @@ In general, we can pass any iterable to the benchmark functions. For instance th
 Delayed evaluation
 ^^^^^^^^^^^^^^^^^^
 
-The ``delayed`` function is a partial implementation of the `dask.delayed <http://dask.pydata.org/en/latest/delayed-api.html>`_ API. It models operations as a chained list of delayed objects that are not evaluated until the ``compute()`` method is called.
+Instead of working with a string statement or a callable as ``timeit.Timer`` does, neurtu evaluates delayed objects.
+
+The ``delayed`` function is a partial implementation of the `dask.delayed <http://dask.pydata.org/en/latest/delayed-api.html>`_ API. It models operations as a chained list of delayed operations that are not evaluated until the ``compute()`` method is called.
 
 .. code:: python
 
@@ -121,16 +130,6 @@ A typical use case, occurs when manipulating objects with a scikit-learn API,
     res = Benchmark(wall_time=True, cpu_time=True)(
             delayed(NearestNeighbors, tags={'n_jobs': n_jobs})(n_jobs=n_jobs).fit(X)
             for n_jobs in range(1, 10))
-
-
-
-Motivation
-----------
-
-The API was strongly inspired by `joblib.Parallel <https://pythonhosted.org/joblib/parallel.html>`_. 
-
-
-The package name was taken from the Basque word *neurtu* meaning "to measure / evaluate". 
 
 
 License

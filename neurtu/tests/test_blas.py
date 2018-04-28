@@ -4,6 +4,7 @@
 from __future__ import division
 
 import os
+import sys
 from glob import glob
 import subprocess
 
@@ -57,9 +58,14 @@ def test_detect_blas():
 @pytest.mark.skipif(np is None, reason='numpy not installed')
 @pytest.mark.parametrize('blas_name', ['mkl', 'openblas', 'blas'])
 def test_blas_set_threads(blas_name):
+
     name, dll_path = detect_blas()
     if name != blas_name:
         pytest.skip('blas=%s not found!' % blas_name)
+
+    if ('CI' in os.environ and os.name == 'nt' and
+            sys.version_info < (3, 4) and name == 'mkl'):
+        pytest.skip('Appveyor with Python 2.7 fails to load the MKL DLL')
 
     blas = Blas(dll_path)
 

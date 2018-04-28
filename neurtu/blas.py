@@ -8,6 +8,11 @@ import itertools
 import ctypes
 from glob import glob
 
+_library_name = [('mkl', 'mkl_rt'),
+                 ('openblas', 'openblas'),
+                 ('blas', 'blas')  # reference BLAS
+                 ]
+
 
 def detect_blas():
     """Detect the BLAS library used by numpy
@@ -26,11 +31,7 @@ def detect_blas():
 
     blas_opt_info = np.__config__.blas_opt_info
 
-    library_name = [('mkl', 'mkl_rt'),
-                    ('openblas', 'openblas'),
-                    ('blas', 'blas')  # reference BLAS
-                    ]
-    for name, library in library_name:
+    for name, library in _library_name:
         if library in blas_opt_info['libraries']:
             break
     else:
@@ -48,7 +49,7 @@ def detect_blas():
     dll_path = list(itertools.chain.from_iterable(
                     glob(os.path.join(
                          dirname,
-                         '%s%s*' % (lib_prefix, dict(library_name)[name])))
+                         '%s%s*' % (lib_prefix, dict(_library_name)[name])))
                     for dirname in blas_opt_info['library_dirs']))
     if dll_path:
         dll_path = dll_path[0]
@@ -59,12 +60,29 @@ def detect_blas():
 
 
 class Blas(object):
-    def __init__(self, name, dll_path=None):
+    """Load a BLAS library
+
+    Parameters
+    ----------
+    dll_path : str
+      path to the BLAS dynamc library
+    """
+    def __init__(self, dll_path=None):
         self.dll_path = dll_path
 
         if not os.path.isfile(dll_path):
             raise IOError('Path %s does not exist!' % dll_path)
-            
+
+        dll_name = os.path.basename(dll_path)
+
+        for name, library in _library_name:
+            if library in dll_name:
+                break
+        else:
+            raise ValueError(('dynamic library %s not recognized '
+                              'as a valid BLAS')
+                             % dll_name)
+
         self.dll = ctypes.cdll.LoadLibrary(self.dll_path)
         self.name = name
 
@@ -88,15 +106,6 @@ class Blas(object):
     def _get_func(self, function_name):
         return getattr(self.dll, self.name + '_' + function_name)
 
-    def get_version(self):
-        """Get BLAS version"""
-        mapping = {'openblas': 'get_config',
-                   'mkl': 'get_version_string'}
-        if self.name in mapping:
-            return self._get_func(mapping[self.name])()
-        else:
-            raise ValueError
-
     def set_num_threads(self, N):
         """Set the maximum number of BLAS threads
 
@@ -109,12 +118,13 @@ class Blas(object):
             raise ValueError('N=%s must be an integer!' % N)
         if N < 1:
             raise ValueError('N=%s must be at least equal to 1' % N)
-        N_c = ctypes.c_int(N)
-        func = self._get_func('set_num_threads')
-        if self.name == 'openblas':
-            func(N_c)
-        elif self.name == 'mkl':
-            func(ctypes.byref(N_c))
+        if self.name in ['openblas', 'mkl']:
+            N_c = ctypes.c_int(N)
+            func = self._get_func('set_num_threads')
+            if self.name == 'openblas':
+                func(N_c)
+            elif self.name == 'mkl':
+                func(ctypes.byref(N_c))
         elif self.name == 'blas':
             pass
         else:

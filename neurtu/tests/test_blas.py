@@ -55,56 +55,28 @@ def test_detect_blas():
 
 
 @pytest.mark.skipif(np is None, reason='numpy not installed')
-def test_mkl_set_threads():
+@pytest.mark.parametrize('blas_name', ['mkl', 'openblas', 'blas'])
+def test_blas_set_threads(blas_name):
     name, dll_path = detect_blas()
+    if name != blas_name:
+        pytest.skip('blas=%s not found!' % blas_name)
 
-    mkl = Blas(name, dll_path)
+    blas = Blas(dll_path)
 
-    mkl.get_version()
-
-    num_threads_0 = mkl.get_num_threads()
+    num_threads_0 = blas.get_num_threads()
     assert num_threads_0 > 0
     assert isinstance(num_threads_0, int)
 
-    num_threads_1 = 1
-
-    mkl.set_num_threads(num_threads_1)
-
-    num_threads_2 = mkl.get_num_threads()
-    assert num_threads_2 == num_threads_1
-
-
-@pytest.mark.skipif(np is None, reason='numpy not installed')
-def test_openblas_set_threads():
-
-    mkl = Blas('openblas', "/home/rth/.miniconda3/envs/openblas-env/lib/libopenblas.so")
-
-    num_threads_0 = mkl.get_num_threads()
-    print(num_threads_0)
-    assert num_threads_0 > 0
-    assert isinstance(num_threads_0, int)
+    if 'CI' in os.environ:
+        assert num_threads_0 > 1
 
     num_threads_1 = 1
 
-    mkl.set_num_threads(num_threads_1)
+    blas.set_num_threads(num_threads_1)
 
-    num_threads_2 = mkl.get_num_threads()
-    assert num_threads_2 == num_threads_1
+    assert blas.get_num_threads() == num_threads_1
 
+    # get back to the original number of threads
+    blas.set_num_threads(num_threads_0)
 
-@pytest.mark.skipif(np is None, reason='numpy not installed')
-def test_blasref_set_threads():
-
-    mkl = Blas('blas', "/usr/lib64/libblas.so.3")
-
-    num_threads_0 = mkl.get_num_threads()
-    print(num_threads_0)
-    assert num_threads_0 > 0
-    assert isinstance(num_threads_0, int)
-
-    num_threads_1 = 1
-
-    mkl.set_num_threads(num_threads_1)
-
-    num_threads_2 = mkl.get_num_threads()
-    assert num_threads_2 == num_threads_1
+    assert blas.get_num_threads() == num_threads_0

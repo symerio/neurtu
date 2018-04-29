@@ -12,6 +12,8 @@ matrix:
       env: REQUIREMENTS="flake8"  RUN_FLAKE8=true RUN_COVERAGE=true  INSTALLER="pip"
     - python: 3.6
       env: REQUIREMENTS="numpy pandas tqdm"  RUN_COVERAGE=true  INSTALLER="conda"
+    - python: 3.6
+      env: REQUIREMENTS="numpy pandas tqdm nomkl"  RUN_COVERAGE=true  INSTALLER="conda"
     - language: generic
       os: osx
       python: 3.6
@@ -29,7 +31,7 @@ install:
          export PATH="$HOME/miniconda/bin:$PATH"
          hash -r
          conda update conda -y
-         conda create -y -n neurtu-env ${REQUIREMENTS} nomkl pytest-cov pytest python=${PYTHON_VERSION}
+         conda create -y -n neurtu-env ${REQUIREMENTS}  pytest-cov pytest python=${PYTHON_VERSION}
          source activate neurtu-env
          pip install codecov pytest-cov
       else

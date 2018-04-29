@@ -60,14 +60,19 @@ def detect_blas():
 
 
 class Blas(object):
-    """Load a BLAS library
+    """Load a BLAS DLL library
 
     Parameters
     ----------
-    dll_path : str
-      path to the BLAS dynamc library
+    dll_path : str, optional
+      path to the BLAS dynamc library. If not provided the BLAS used by
+      numpy is loaded.
     """
     def __init__(self, dll_path=None):
+
+        if dll_path is None:
+            _, dll_path = detect_blas()
+
         self.dll_path = dll_path
 
         if not os.path.isfile(dll_path):

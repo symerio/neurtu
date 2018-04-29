@@ -21,3 +21,4 @@ BLAS tools
     :toctree: ./generated/
    
     neurtu.blas.detect_blas
+    neurtu.blas.Blas

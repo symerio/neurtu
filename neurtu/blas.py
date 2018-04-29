@@ -125,8 +125,6 @@ class Blas(object):
         N : int
           maximum number of BLAS threads
         """
-        if not isinstance(N, int):
-            raise ValueError('N=%s must be an integer!' % N)
         if N < 1:
             raise ValueError('N=%s must be at least equal to 1' % N)
         if self.name in ['openblas', 'mkl']:

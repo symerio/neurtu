@@ -20,7 +20,12 @@ install:
   - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
   - conda config --set always_yes yes --set changeps1 no
   - conda install %REQUIREMENTS%
+  - pip install codecov pytest-cov
   - pip install -e .
 
+
 test_script:
-  - pytest -s neurtu/
+  - pytest -s --cov=neurtu neurtu/
+
+on_success:
+  - codecov

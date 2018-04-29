@@ -4,6 +4,7 @@
 from __future__ import division
 
 import os
+import sys
 from glob import glob
 import subprocess
 
@@ -55,6 +56,8 @@ def test_detect_blas():
 
 
 @pytest.mark.skipif(np is None, reason='numpy not installed')
+@pytest.mark.skipif(sys.name == 'nt',
+                    reason='Loading BLAS DLL fails on Windows for now')
 @pytest.mark.parametrize('blas_name', ['mkl', 'openblas', 'blas'])
 def test_blas_set_threads(blas_name):
 

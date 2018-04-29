@@ -82,8 +82,14 @@ class Blas(object):
             raise ValueError(('dynamic library %s not recognized '
                               'as a valid BLAS')
                              % dll_name)
+        if os.name == 'posix':
+            ctypes_loader = ctypes.cdll
+        elif os.name == 'nt':
+            ctypes_loader = ctypes.windll
+        else:
+            raise OSError('os.name=%s not supported!' % os.name)
 
-        self.dll = ctypes.cdll.LoadLibrary(self.dll_path)
+        self.dll = ctypes_loader.LoadLibrary(self.dll_path)
         self.name = name
 
     def get_num_threads(self):

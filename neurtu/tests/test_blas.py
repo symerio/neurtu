@@ -4,7 +4,6 @@
 from __future__ import division
 
 import os
-import sys
 from glob import glob
 import subprocess
 
@@ -56,7 +55,7 @@ def test_detect_blas():
 
 
 @pytest.mark.skipif(np is None, reason='numpy not installed')
-@pytest.mark.skipif(sys.name == 'nt',
+@pytest.mark.skipif(os.name == 'nt',
                     reason='Loading BLAS DLL fails on Windows for now')
 @pytest.mark.parametrize('blas_name', ['mkl', 'openblas', 'blas'])
 def test_blas_set_threads(blas_name):
@@ -84,3 +83,22 @@ def test_blas_set_threads(blas_name):
     blas.set_num_threads(num_threads_0)
 
     assert blas.get_num_threads() == num_threads_0
+
+
+@pytest.mark.skipif(np is None, reason='numpy not installed')
+@pytest.mark.skipif(os.name == 'nt',
+                    reason='Loading BLAS DLL fails on Windows for now')
+def test_blas_autodetect():
+    blas = Blas()
+    name, dll_path = detect_blas()
+    assert blas.name == name
+    assert blas.dll_path == dll_path
+
+
+@pytest.mark.skipif(os.name != 'nt',
+                    reason='Windows only test')
+@pytest.mark.skipif(np is None, reason='numpy not installed')
+def test_blas_fails_on_windows():
+    with pytest.raises(OSError) as excinfo:
+        Blas()
+    assert "is not a valid Win32 application" in str(excinfo.value)

@@ -130,7 +130,6 @@ class Blas(object):
 
         Examples
         --------
-
         >>> blas = Blas()   #doctest: +SKIP
         >>> blas.set_num_threads(1)  #doctest: +SKIP
         >>> with blas.set_num_threads(4):  #doctest: +SKIP

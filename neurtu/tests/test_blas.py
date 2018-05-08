@@ -75,12 +75,20 @@ def test_blas_set_threads(blas_name):
 
     num_threads_1 = 1
 
+    # setting the number of threads without a context manager
     blas.set_num_threads(num_threads_1)
 
     assert blas.get_num_threads() == num_threads_1
 
     # get back to the original number of threads
     blas.set_num_threads(num_threads_0)
+
+    assert blas.get_num_threads() == num_threads_0
+
+    # setting the number of threads with a context manager
+
+    with blas.set_num_threads(num_threads_1):
+        assert blas.get_num_threads() == num_threads_1
 
     assert blas.get_num_threads() == num_threads_0
 

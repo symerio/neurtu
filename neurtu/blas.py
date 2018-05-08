@@ -7,6 +7,7 @@ import os
 import itertools
 import ctypes
 from glob import glob
+import contextlib
 
 _library_name = [('mkl', 'mkl_rt'),
                  ('openblas', 'openblas'),
@@ -120,13 +121,40 @@ class Blas(object):
     def set_num_threads(self, N):
         """Set the maximum number of BLAS threads
 
+        This method can also be used as a context manager.
+
         Parameters
         ----------
         N : int
           maximum number of BLAS threads
+
+        Examples
+        --------
+
+        >>> blas = Blas()   #doctest: +SKIP
+        >>> blas.set_num_threads(1)  #doctest: +SKIP
+        >>> with blas.set_num_threads(4):  #doctest: +SKIP
+        ...     # change the number of threads only in the current context
+        ...     pass
         """
+        N_init = self.get_num_threads()
+        self._set_num_threads(N)
+
+        # if this method is called in a "with" statement,
+        # act as a content manager and revert the number of threads to the
+        # original version when exiting the context
+
+        @contextlib.contextmanager
+        def set_num_threads_context_manager():
+            yield
+            self._set_num_threads(N_init)
+
+        return set_num_threads_context_manager()
+
+    def _set_num_threads(self, N):
         if N < 1:
             raise ValueError('N=%s must be at least equal to 1' % N)
+
         if self.name in ['openblas', 'mkl']:
             N_c = ctypes.c_int(N)
             func = self._get_func('set_num_threads')

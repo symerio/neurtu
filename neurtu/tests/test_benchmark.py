@@ -102,6 +102,24 @@ def test_dataframe_conversion(aggregate):
         else:
             assert res.shape[0] == N*repeat
 
+
+@pytest.mark.parametrize('repeat', (1, 2))
+@pytest.mark.parametrize('aggregate', (False, True))
+def test_single_repeated_benchmarks(repeat, aggregate):
+
+    bench = Benchmark(wall_time=True, to_dataframe=False,
+                      repeat=repeat, aggregate=aggregate)
+    res = bench(delayed(sleep)(0))
+    if aggregate:
+        assert isinstance(res, dict)
+        assert 'wall_time_mean' in res
+    else:
+        assert len(res) == repeat
+        assert 'wall_time' == res[0]['metric']
+
+
+
+
 # Handling of optional parameters
 
 

@@ -24,6 +24,7 @@ allows quick analysis and visualization of the results.
    quickstart
    examples/index
    api
+   release-notes.rst
 
 
 

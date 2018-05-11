@@ -52,6 +52,12 @@ def detect_blas():
                          dirname,
                          '%s%s*' % (lib_prefix, dict(_library_name)[name])))
                     for dirname in blas_opt_info['library_dirs']))
+    print('\n'.join(list(itertools.chain.from_iterable(
+                         glob(os.path.join(
+                         dirname,
+                         '*'))
+                    for dirname in blas_opt_info['library_dirs']))))
+
     if dll_path:
         dll_path = dll_path[0]
     else:
@@ -73,6 +79,8 @@ class Blas(object):
 
         if dll_path is None:
             _, dll_path = detect_blas()
+            if dll_path is None:
+                raise OSError('Could not find any BLAS!')
 
         self.dll_path = dll_path
 

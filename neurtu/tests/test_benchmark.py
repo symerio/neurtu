@@ -9,7 +9,6 @@ import pytest
 from pytest import approx
 
 from neurtu import timeit, memit, delayed, Benchmark
-from neurtu.utils import import_or_none
 
 # Timing tests
 
@@ -69,22 +68,40 @@ def test_memit_array_allocation():
                                         rel=0.02)
 
 
-def test_dataframe_conversion():
+@pytest.mark.parametrize('repeat', (1, 3))
+@pytest.mark.parametrize('aggregate', [['mean', 'max'], False])
+def test_dataframe_conversion(repeat, aggregate):
 
-    pd = import_or_none('pandas')
+    pd = pytest.importorskip('pandas')
 
     N = 2
-    repeat = 3
 
-    res = timeit((delayed(sleep, tags={'idx': idx})(0.1) for idx in range(N)),
-                 repeat=repeat)
+    metrics = ['peak_memory', 'wall_time']
 
-    if pd is None:
-        assert isinstance(res, list)
+    bench = Benchmark(wall_time=True, peak_memory=True,
+                      repeat=repeat, aggregate=aggregate)
 
+    res = bench(delayed(sleep, tags={'idx': idx})(0.04) for idx in range(N))
+
+    assert isinstance(res, pd.DataFrame)
+
+    if aggregate:
+        assert len(res) == N
+        assert res.index.names == ['idx']
+        if repeat > 1:
+            assert isinstance(res.columns, pd.MultiIndex)
+            assert list(res.columns.levels[0]) == metrics
+            assert list(res.columns.levels[1]) == aggregate
+        else:
+            assert isinstance(res.columns, pd.Index)
     else:
-        assert isinstance(res, pd.DataFrame)
-    assert len(res) == N*repeat
+        assert len(res) == N*repeat
+        if repeat > 1:
+            assert res.index.names == ['idx', 'runid']
+        else:
+            assert res.index.names == ['idx']
+        assert isinstance(res.columns, pd.Index)
+        assert list(res.columns) == metrics
 
 
 # Handling of optional parameters
@@ -119,10 +136,11 @@ def test_benchmark_env():
 # Parametric benchmark testing
 
 
-def test_timeit_sequence():
+@pytest.mark.parametrize('repeat', (1, 2))
+def test_timeit_sequence(repeat):
 
     res = timeit((delayed(sleep, tags={'idx': idx})(0.1) for idx in range(2)),
-                 to_dataframe=False)
+                 repeat=repeat, to_dataframe=False)
     assert isinstance(res, list)
     for row in res:
         assert 'wall_time' in row

@@ -101,6 +101,10 @@ class Benchmark(object):
       to the :func:`measure_peak_memory` function.
     repeat : int, default=1
         number of repeated measurements
+    aggregate : {collection, False}, default=('mean', 'max', 'std')
+       when repeat > 1, different runs are indexed by the ``runid`` key.
+       If pandas is installed and aggregate is a collection, aggregate repeated
+       runs with the provided methods.
     to_dataframe : bool, default=None
       whether to convert parametric results to a daframe. By default convert to
       dataframe is pandas is installed.
@@ -114,7 +118,7 @@ class Benchmark(object):
       metric that accepts a ``Delayed`` object: ``func(obj)``.
     """
     def __init__(self, wall_time=None, cpu_time=False, peak_memory=False,
-                 repeat=1, to_dataframe=None,
+                 repeat=1, aggregate=('mean', 'max', 'std'), to_dataframe=None,
                  progress_bar=5.0, **kwargs):
         metrics = {}
         for name, params, func in [
@@ -141,6 +145,7 @@ class Benchmark(object):
             metrics['wall_time'] = {'func': measure_wall_time}
         self.metrics = metrics
         self.repeat = repeat
+        self.aggregate = aggregate
         self.to_dataframe = to_dataframe
         self.progress_bar = progress_bar
 
@@ -195,7 +200,17 @@ class Benchmark(object):
 
         if iterable_input:
             if self.to_dataframe is not False and pd is not None:
-                return pd.DataFrame(db)
+                index = list(obj[0].get_tags().keys())
+                if self.repeat > 1:
+                    index.append('runid')
+                db = pd.DataFrame(db)
+                if index:
+                    db.set_index(index, inplace=True)
+                if self.repeat >= 3 and self.aggregate:
+                    index.remove('runid')
+                    db = db.groupby(index).agg(self.aggregate)
+
+                return db
             else:
                 return db
         else:
@@ -214,8 +229,7 @@ class Benchmark(object):
         return '|'.join(tags_el)
 
     def _evaluate_single(self, obj, pbar):
-        """Evaluate a single delayed object when
-        self.aggregated is True"""
+        """Evaluate all metrics a single time"""
         row = {}
         row.update(obj.get_tags())
         row.update(obj.get_env())
@@ -235,7 +249,8 @@ class Benchmark(object):
         return row
 
 
-def memit(obj, repeat=1, interval=0.01, to_dataframe=None, progress_bar=5.0):
+def memit(obj, repeat=1, aggregate=('mean', 'max', 'std'),
+          interval=0.01, to_dataframe=None, progress_bar=5.0):
     """Measure the memory use.
 
     This is an alias for :class:`Benchmark` with `peak_memory=True)`.
@@ -244,6 +259,10 @@ def memit(obj, repeat=1, interval=0.01, to_dataframe=None, progress_bar=5.0):
     ----------
     repeat : int, default=1
         number of repeated measurements
+    aggregate : {collection, False}, default=('mean', 'max', 'std')
+       when repeat > 1, different runs are indexed by the ``runid`` key.
+       If pandas is installed and aggregate is a collection, aggregate repeated
+       runs with the provided methods.
     to_dataframe : bool, default=None
       whether to convert parametric results to a daframe. By default convert to
       dataframe is pandas is installed.
@@ -260,12 +279,13 @@ def memit(obj, repeat=1, interval=0.01, to_dataframe=None, progress_bar=5.0):
 
     return Benchmark(peak_memory={'interval': interval},
                      to_dataframe=to_dataframe,
-                     repeat=repeat,
+                     repeat=repeat, aggregate=aggregate,
                      progress_bar=progress_bar)(obj)
 
 
 def timeit(obj, timer='wall_time', number=1, repeat=1,
-           to_dataframe=None, progress_bar=5.0):
+           aggregate=('mean', 'max', 'std'), to_dataframe=None,
+           progress_bar=5.0):
     """A benchmark decorator
 
     This is an alias for :class:`Benchmark` with `wall_time=True`.
@@ -278,6 +298,10 @@ def timeit(obj, timer='wall_time', number=1, repeat=1,
         number of runs to pass to ``timeit.Timer``
     repeat : int, default=1
         number of repeated measurements
+    aggregate : {collection, False}, default=('mean', 'max', 'std')
+       when repeat > 1, different runs are indexed by the ``runid`` key.
+       If pandas is installed and aggregate is a collection, aggregate repeated
+       runs with the provided methods.
     to_dataframe : bool, default=None
       whether to convert parametric results to a daframe. By default convert to
       dataframe is pandas is installed.
@@ -293,7 +317,7 @@ def timeit(obj, timer='wall_time', number=1, repeat=1,
     """
 
     args = {'to_dataframe': to_dataframe, 'progress_bar': progress_bar,
-            'repeat': repeat}
+            'repeat': repeat, 'aggregate': aggregate}
 
     if timer == 'wall_time':
         return Benchmark(wall_time={'number': number}, **args)(obj)

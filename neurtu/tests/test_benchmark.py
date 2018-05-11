@@ -32,21 +32,14 @@ def test_timeit_overhead():
     else:
         timer_precision = 5e-3
 
-    assert res['wall_time_mean'] == approx(dt, abs=timer_precision)
-    assert res['wall_time_max'] == approx(dt, abs=timer_precision)
-    assert res['wall_time_min'] == approx(dt, abs=timer_precision)
-
-    if sys.platform in ['win32', 'darwin']:
-        assert res['wall_time_std'] / res['wall_time_mean'] < 0.1
-    else:
-        assert res['wall_time_std'] / res['wall_time_mean'] < 0.01
+    assert res['wall_time'] == approx(dt, abs=timer_precision)
 
 
 def test_wall_user_time():
     pytest.importorskip('resource')
 
     res = timeit(delayed(sleep)(0), timer='cpu_time')
-    assert 'cpu_time_mean' in res
+    assert 'cpu_time' in res
 
 
 # Memory based tests
@@ -57,7 +50,7 @@ def test_memit_overhead():
     assert isinstance(res, dict)
 
     # measurement error is less than 0.5 MB
-    assert res['peak_memory_mean'] < 0.5
+    assert res['peak_memory'] < 0.5
 
 
 def test_memit_array_allocation():
@@ -72,76 +65,49 @@ def test_memit_array_allocation():
         X[:] += 1
 
     res = memit(delayed(allocate_array)())
-    assert res['peak_memory_mean'] == approx(N**2*double_size / 1024**2,
-                                             rel=0.02)
+    assert res['peak_memory'] == approx(N**2*double_size / 1024**2,
+                                        rel=0.02)
 
 
-@pytest.mark.parametrize('aggregate', ['aggregate', None])
-def test_dataframe_conversion(aggregate):
+def test_dataframe_conversion():
 
     pd = import_or_none('pandas')
 
     N = 2
     repeat = 3
-    aggregate = aggregate is not None
 
     res = timeit((delayed(sleep, tags={'idx': idx})(0.1) for idx in range(N)),
-                 aggregate=aggregate, repeat=repeat)
+                 repeat=repeat)
 
     if pd is None:
         assert isinstance(res, list)
-        if aggregate:
-            assert len(res) == N
-        else:
-            assert len(res) == N*repeat
 
     else:
         assert isinstance(res, pd.DataFrame)
-        if aggregate:
-            assert res.shape[0] == N
-        else:
-            assert res.shape[0] == N*repeat
-
-
-@pytest.mark.parametrize('repeat', (1, 2))
-@pytest.mark.parametrize('aggregate', (False, True))
-def test_single_repeated_benchmarks(repeat, aggregate):
-
-    bench = Benchmark(wall_time=True, to_dataframe=False,
-                      repeat=repeat, aggregate=aggregate)
-    res = bench(delayed(sleep)(0))
-    if aggregate:
-        assert isinstance(res, dict)
-        assert 'wall_time_mean' in res
-    else:
-        assert len(res) == repeat
-        assert 'wall_time' == res[0]['metric']
-
-
+    assert len(res) == N*repeat
 
 
 # Handling of optional parameters
 
 
-def test_multiple_metrics():
+@pytest.mark.parametrize('repeat', (1, 2))
+def test_multiple_metrics(repeat):
 
-    bench = Benchmark(wall_time=True, peak_memory=True)
+    bench = Benchmark(wall_time=True, peak_memory=True,
+                      to_dataframe=False, repeat=repeat)
     res = bench(delayed(sleep)(0))
-    assert isinstance(res, dict)
+
+    if repeat == 1:
+        assert isinstance(res, dict)
+    else:
+        assert isinstance(res, list)
+        len(res) == repeat
+        assert isinstance(res[0], dict)
+        res = res[0]
+
     for metric in ['wall_time', 'peak_memory']:
-        for key in ['min', 'max', 'mean', 'std']:
-            name = '_'.join([metric, key])
-            assert name in res
-            assert res[name] >= 0
-
-
-def test_non_aggregated():
-    res = timeit(delayed(sleep)(0), to_dataframe=False,
-                 aggregate=False)
-
-    assert isinstance(res, list)
-    for row in res:
-        assert set(row.keys()) == set(['value', 'metric', 'repeat'])
+        assert metric in res
+        assert res[metric] >= 0
 
 
 def test_benchmark_env():
@@ -159,10 +125,8 @@ def test_timeit_sequence():
                  to_dataframe=False)
     assert isinstance(res, list)
     for row in res:
-        for key in ['min', 'max', 'mean', 'std']:
-            name = 'wall_time_' + key
-            assert name in row
-            assert row[name] > 0
+        assert 'wall_time' in row
+        assert row['wall_time'] > 0
 
 
 def test_untaged_sequence():
@@ -202,5 +166,4 @@ def test_custom_metric():
 
     bench = Benchmark(custom_metric=custom_metric)
     res = bench(delayed(range)(3))
-    assert res == {'custom_metric_min': 3, 'custom_metric_max': 3,
-                   'custom_metric_mean': 3.0, 'custom_metric_std': 0.0}
+    assert res == {'custom_metric': 3}

@@ -15,7 +15,6 @@ except ImportError:  # pragma: no cover
 
 
 from .delayed import _is_delayed
-from .compat import _mean, _stddev
 from .utils import import_or_none
 from .metrics import measure_wall_time, measure_cpu_time
 from .metrics import measure_peak_memory
@@ -24,11 +23,11 @@ from .metrics import measure_peak_memory
 __version__ = '0.1.dev0'
 
 
-def _validate_timer_precision(res, func, obj_el, params, repeat):
+def _validate_timer_precision(res, func, obj_el, params):
     """For timing measurements, increase the number of iterations
     if the precision is unsufficient"""
-    res_mean = _mean(res)
-    if sys.platform in ['win32', 'darwin']:  # pragma: no cover
+    res_mean = res
+    if sys.platform in ['win32', 'darwin']:
         timer_threashold = 1.0
     else:
         timer_threashold = 0.2
@@ -41,10 +40,8 @@ def _validate_timer_precision(res, func, obj_el, params, repeat):
         corrected_number = int(timer_threashold / res_mean)
         params = params.copy()
         params['number'] = corrected_number
-        res = []
-        for _ in range(repeat):
-            gc.collect()
-            res.append(func(obj_el, **params))
+        gc.collect()
+        res = func(obj_el, **params)
     return res
 
 
@@ -102,10 +99,8 @@ class Benchmark(object):
     peak_memory : {bool, dict}, default=False
       measure peak memory usage. When a dictionary, it is passed as parameters
       to the :func:`measure_peak_memory` function.
-    repeat : int, default=3
+    repeat : int, default=1
         number of repeated measurements
-    aggregate : bool, default=True
-      whether to aggregate repeated runs.
     to_dataframe : bool, default=None
       whether to convert parametric results to a daframe. By default convert to
       dataframe is pandas is installed.
@@ -119,7 +114,7 @@ class Benchmark(object):
       metric that accepts a ``Delayed`` object: ``func(obj)``.
     """
     def __init__(self, wall_time=None, cpu_time=False, peak_memory=False,
-                 repeat=3, aggregate=True, to_dataframe=None,
+                 repeat=1, to_dataframe=None,
                  progress_bar=5.0, **kwargs):
         metrics = {}
         for name, params, func in [
@@ -128,13 +123,9 @@ class Benchmark(object):
                 ('peak_memory', peak_memory, measure_peak_memory)]:
             if params:
                 if params is True:
-                    params = {'repeat': repeat}
+                    params = {}
                 else:
                     params = params.copy()
-                    if 'repeat' not in params:
-                        # if the individual repeat parameter is not defined,
-                        # use the global one
-                        params['repeat'] = repeat
                 params['func'] = func
                 metrics[name] = params
         for name, params in kwargs.items():
@@ -142,14 +133,14 @@ class Benchmark(object):
                 raise ValueError(('%s=%s is not a callable. Use a callable '
                                   'to define a custom metric!')
                                  % (name, params))
-            params = {'func': params, 'repeat': repeat}
+            params = {'func': params}
             metrics[name] = params
 
         if not metrics:
             # if no metrics were explicitly enabled, measure wall_time
             metrics['wall_time'] = {'func': measure_wall_time}
         self.metrics = metrics
-        self.aggregate = aggregate
+        self.repeat = repeat
         self.to_dataframe = to_dataframe
         self.progress_bar = progress_bar
 
@@ -164,6 +155,7 @@ class Benchmark(object):
 
         if _is_delayed(obj):
             obj = [obj]
+        if isinstance(obj, list) and len(obj) == 1 and self.repeat == 1:
             iterable_input = False
         else:
             iterable_input = True
@@ -190,17 +182,18 @@ class Benchmark(object):
 
         db = []
         pbar = _ProgressBar(len(obj)*len(self.metrics), self.progress_bar)
-        if self.aggregate:
+        for runid in range(self.repeat):
             for idx, obj_el in enumerate(obj):
-                db.append(self._evaluate_single_aggregated(obj_el, pbar))
-        else:
-            for idx, obj_el in enumerate(obj):
-                db += self._evaluate_single(obj_el, pbar)
+                res = self._evaluate_single(obj_el, pbar)
+                if self.repeat > 1:
+                    res['runid'] = runid
+                db.append(res)
+
         pbar.close()
 
         pd = import_or_none('pandas')
 
-        if iterable_input or not self.aggregate:
+        if iterable_input:
             if self.to_dataframe is not False and pd is not None:
                 return pd.DataFrame(db)
             else:
@@ -221,33 +214,6 @@ class Benchmark(object):
         return '|'.join(tags_el)
 
     def _evaluate_single(self, obj, pbar):
-        """Evaluate a single delayed object"""
-        db = []
-        for (name, params) in self.metrics.items():
-            params = params.copy()
-            repeat = params.pop('repeat')
-            func = params.pop('func')
-            tags = obj.get_tags()
-            env = obj.get_env()
-
-            res = []
-            for _ in range(repeat):
-                gc.collect()
-                res.append(func(obj, **params))
-
-            if name in ['wall_time', 'cpu_time']:
-                res = _validate_timer_precision(res, func, obj,
-                                                params, repeat)
-            for k_interation, res_iteration in enumerate(res):
-                row = {'repeat': res_iteration, 'metric': name,
-                       'value': res_iteration}
-                row.update(tags)
-                row.update(env)
-                db.append(row)
-            pbar.increment()
-        return db
-
-    def _evaluate_single_aggregated(self, obj, pbar):
         """Evaluate a single delayed object when
         self.aggregated is True"""
         row = {}
@@ -256,39 +222,28 @@ class Benchmark(object):
 
         for (name, params) in self.metrics.items():
             params = params.copy()
-            repeat = params.pop('repeat')
             func = params.pop('func')
 
-            res = []
-            for _ in range(repeat):
-                gc.collect()
-                res.append(func(obj, **params))
+            gc.collect()
+            res = func(obj, **params)
 
             if name in ['wall_time', 'cpu_time']:
                 res = _validate_timer_precision(res, func, obj,
-                                                params, repeat)
-
-            row[name + '_min'] = min(res)
-            row[name + '_max'] = max(res)
-            row[name + '_mean'] = _mean(res)
-            if len(res) > 1:
-                row[name + '_std'] = _stddev(res)
+                                                params)
+            row[name] = res
             pbar.increment()
         return row
 
 
-def memit(obj, repeat=3, interval=0.01, aggregate=True,
-          to_dataframe=None, progress_bar=5.0):
+def memit(obj, repeat=1, interval=0.01, to_dataframe=None, progress_bar=5.0):
     """Measure the memory use.
 
     This is an alias for :class:`Benchmark` with `peak_memory=True)`.
 
     Parameters
     ----------
-    repeat : int, default=3
+    repeat : int, default=1
         number of repeated measurements
-    aggregate : bool
-        aggregate results between repeated measurements
     to_dataframe : bool, default=None
       whether to convert parametric results to a daframe. By default convert to
       dataframe is pandas is installed.
@@ -303,13 +258,14 @@ def memit(obj, repeat=3, interval=0.01, aggregate=True,
         computed memory usage
     """
 
-    return Benchmark(peak_memory={'repeat': repeat, 'interval': interval},
-                     aggregate=aggregate, to_dataframe=to_dataframe,
+    return Benchmark(peak_memory={'interval': interval},
+                     to_dataframe=to_dataframe,
+                     repeat=repeat,
                      progress_bar=progress_bar)(obj)
 
 
-def timeit(obj, timer='wall_time', number=1, repeat=3,
-           aggregate=True, to_dataframe=None, progress_bar=5.0):
+def timeit(obj, timer='wall_time', number=1, repeat=1,
+           to_dataframe=None, progress_bar=5.0):
     """A benchmark decorator
 
     This is an alias for :class:`Benchmark` with `wall_time=True`.
@@ -320,10 +276,8 @@ def timeit(obj, timer='wall_time', number=1, repeat=3,
         delayed object to compute, or an iterable of Delayed objects
     number : int, default=1
         number of runs to pass to ``timeit.Timer``
-    repeat : int, default=3
+    repeat : int, default=1
         number of repeated measurements
-    aggregate : bool
-        aggregate results between repeated measurements
     to_dataframe : bool, default=None
       whether to convert parametric results to a daframe. By default convert to
       dataframe is pandas is installed.
@@ -338,15 +292,13 @@ def timeit(obj, timer='wall_time', number=1, repeat=3,
         computed timing
     """
 
-    args = {'aggregate': aggregate, 'to_dataframe': to_dataframe,
-            'progress_bar': progress_bar}
+    args = {'to_dataframe': to_dataframe, 'progress_bar': progress_bar,
+            'repeat': repeat}
 
     if timer == 'wall_time':
-        return Benchmark(wall_time={'number': number, 'repeat': repeat},
-                         **args)(obj)
+        return Benchmark(wall_time={'number': number}, **args)(obj)
     elif timer == 'cpu_time':
-        return Benchmark(cpu_time={'number': number, 'repeat': repeat},
-                         **args)(obj)
+        return Benchmark(cpu_time={'number': number}, **args)(obj)
     else:
         raise ValueError("timer=%s should be one of 'cpu_time', 'wall_time'"
                          % timer)

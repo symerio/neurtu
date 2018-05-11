@@ -32,6 +32,7 @@ def detect_blas():
 
     blas_opt_info = np.__config__.blas_opt_info
 
+    print(blas_opt_info)
     for name, library in _library_name:
         if library in blas_opt_info['libraries']:
             break
@@ -56,7 +57,7 @@ def detect_blas():
                          glob(os.path.join(
                          dirname,
                          '*'))
-                    for dirname in blas_opt_info['library_dirs']))))
+                         for dirname in blas_opt_info['library_dirs']))))
 
     if dll_path:
         dll_path = dll_path[0]

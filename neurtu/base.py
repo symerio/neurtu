@@ -206,9 +206,13 @@ class Benchmark(object):
                 db = pd.DataFrame(db)
                 if index:
                     db.set_index(index, inplace=True)
-                if self.repeat >= 3 and self.aggregate:
-                    index.remove('runid')
-                    db = db.groupby(index).agg(self.aggregate)
+                if self.repeat > 1 and self.aggregate:
+                    if index == ['runid']:
+                        # no tags were passed
+                        db = db.agg(self.aggregate)
+                    else:
+                        index.remove('runid')
+                        db = db.groupby(index).agg(self.aggregate)
 
                 return db
             else:

@@ -9,6 +9,7 @@ import pytest
 from pytest import approx
 
 from neurtu import timeit, memit, delayed, Benchmark
+from neurtu.utils import import_or_none
 
 # Timing tests
 
@@ -105,6 +106,18 @@ def test_dataframe_conversion(repeat, aggregate):
 
 
 # Handling of optional parameters
+
+def test_repeat():
+
+    agg = ('mean',)
+    res = timeit(delayed(sleep)(0), repeat=2, aggregate=agg)
+    pd = import_or_none('pandas')
+
+    if pd is None:
+        assert len(res) == 2
+    else:
+        assert list(res.columns) == ['wall_time']
+        assert list(res.index) == list(agg)
 
 
 @pytest.mark.parametrize('repeat', (1, 2))

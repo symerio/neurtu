@@ -9,10 +9,10 @@ import ctypes
 from glob import glob
 import contextlib
 
-_library_name = [('mkl', 'mkl_rt'),
-                 ('openblas', 'openblas'),
-                 ('blas', 'blas')  # reference BLAS
-                 ]
+_library_name = {'mkl': ('mkl_rt', 'mkl_core_dll'),
+                 'openblas': ('openblas', ),
+                 'reference': ('blas', )  # reference BLAS
+                 }
 
 
 def detect_blas():
@@ -32,9 +32,8 @@ def detect_blas():
 
     blas_opt_info = np.__config__.blas_opt_info
 
-    print(blas_opt_info)
-    for name, library in _library_name:
-        if library in blas_opt_info['libraries']:
+    for name, libraries in _library_name.items():
+        if any(library in blas_opt_info['libraries'] for library in libraries):
             break
     else:
         return None, None
@@ -51,13 +50,9 @@ def detect_blas():
     dll_path = list(itertools.chain.from_iterable(
                     glob(os.path.join(
                          dirname,
-                         '%s%s*' % (lib_prefix, dict(_library_name)[name])))
-                    for dirname in blas_opt_info['library_dirs']))
-    print('\n'.join(list(itertools.chain.from_iterable(
-                         glob(os.path.join(
-                         dirname,
-                         '*'))
-                         for dirname in blas_opt_info['library_dirs']))))
+                         '%s%s*' % (lib_prefix, library_pattern)))
+                    for dirname in blas_opt_info['library_dirs']
+                    for library_pattern in _library_name[name]))
 
     if dll_path:
         dll_path = dll_path[0]
@@ -90,8 +85,8 @@ class Blas(object):
 
         dll_name = os.path.basename(dll_path)
 
-        for name, library in _library_name:
-            if library in dll_name:
+        for name, libraries in _library_name.items():
+            if any(library in dll_name for library in libraries):
                 break
         else:
             raise ValueError(('dynamic library %s not recognized '

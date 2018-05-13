@@ -66,7 +66,7 @@ def test_memit_array_allocation():
 
     res = memit(delayed(allocate_array)())
     assert res['peak_memory'] == approx(N**2*double_size / 1024**2,
-                                        rel=0.02)
+                                        rel=0.05)
 
 
 @pytest.mark.parametrize('repeat', (1, 3))

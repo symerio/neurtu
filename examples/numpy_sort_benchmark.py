@@ -24,7 +24,7 @@ print(df.to_string())
 #
 # we can use the pandas plotting API (that requires matplotlib)
 
-ax = df.set_index(['N', 'kind']).wall_time_mean.unstack().plot(marker='o')
+ax = df.wall_time.unstack().plot(marker='o')
 ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_ylabel('Wall time (s)')

@@ -29,7 +29,7 @@ neurtu requires Python 2.7 or 3.4+, it can be installed with,
 
    pip install neurtu
 
-`pandas <https://pandas.pydata.org/pandas-docs/stable/install.html#installation>`_ is an optional (but highly recommended) dependency.
+`pandas >=0.20 <https://pandas.pydata.org/pandas-docs/stable/install.html#installation>`_ is an optional (but highly recommended) dependency.
 
 
 Quickstart
@@ -42,8 +42,8 @@ Single benchmark
    .. code:: python
 
        >>> from neurtu import timeit, delayed
-       >>> timeit(delayed(sum)(range(100000)), repeat=3)
-       {'wall_time_max': 0.0018, 'wall_time_mean': 0.0017, 'wall_time_min': 0.0015, 'wall_time_std': 0.00011}
+       >>> timeit(delayed(sum)(range(100000)))
+       {'wall_time': 0.0019758607500001014}
 
    which will internally call ``timeit.Timer``. Similarly to IPython's ``%timeit``, the number of runs
    will be determined at runtime to mitigate the finite resolution of the timer (on Windows it's 16 ms!). In addition,
@@ -55,7 +55,7 @@ Single benchmark
 
        >>> from neurtu import memit, delayed
        >>> memit(delayed(sorted)(list(range(100000))))
-       {'peak_memory_max': 0.765, 'peak_memory_mean': 0.757, 'peak_memory_min': 0.753, 'peak_memory_std': 0.00552}
+       {'peak_memory': 0.74609375}
 
 3. Generic benchmarks
 
@@ -84,10 +84,11 @@ This can typically be used to determine time or space complexity of some calcula
     >>> from neurtu import timeit, delayed
     >>> timeit(delayed(sorted, tags={'N': N})(range(N))
     ...        for N in [1000, 10000, 100000])
-            N  wall_time_max  wall_time_mean  wall_time_min  wall_time_std
-    0    1000       0.000024        0.000024       0.000024   5.951794e-08
-    1   10000       0.000319        0.000319       0.000318   4.723035e-07
-    2  100000       0.003695        0.003686       0.003678   7.144085e-06
+            wall_time
+    N
+    1000     0.000029
+    10000    0.000302
+    100000   0.003923
 
 
 the results with be a ``pandas.DataFrame`` if pandas is installed and a list of dictionaries otherwise.

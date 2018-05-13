@@ -8,11 +8,13 @@ import itertools
 import ctypes
 from glob import glob
 import contextlib
+from collections import OrderedDict
 
-_library_name = [('mkl', 'mkl_rt'),
-                 ('openblas', 'openblas'),
-                 ('blas', 'blas')  # reference BLAS
-                 ]
+BLAS_BACKENDS = OrderedDict([
+        ('mkl', ('mkl_rt', 'mkl_core_dll')),
+        ('openblas', ('openblas',)),
+        ('reference', ('blas',))  # reference BLAS
+])
 
 
 def detect_blas():
@@ -32,8 +34,8 @@ def detect_blas():
 
     blas_opt_info = np.__config__.blas_opt_info
 
-    for name, library in _library_name:
-        if library in blas_opt_info['libraries']:
+    for name, libraries in BLAS_BACKENDS.items():
+        if any(library in blas_opt_info['libraries'] for library in libraries):
             break
     else:
         return None, None
@@ -50,8 +52,10 @@ def detect_blas():
     dll_path = list(itertools.chain.from_iterable(
                     glob(os.path.join(
                          dirname,
-                         '%s%s*' % (lib_prefix, dict(_library_name)[name])))
-                    for dirname in blas_opt_info['library_dirs']))
+                         '%s%s*' % (lib_prefix, library_pattern)))
+                    for dirname in blas_opt_info['library_dirs']
+                    for library_pattern in BLAS_BACKENDS[name]))
+
     if dll_path:
         dll_path = dll_path[0]
     else:
@@ -72,22 +76,23 @@ class Blas(object):
     def __init__(self, dll_path=None):
 
         if dll_path is None:
-            _, dll_path = detect_blas()
+            name, dll_path = detect_blas()
+            if dll_path is None:
+                raise OSError('Could not find any BLAS!')
+        else:
+            if not os.path.isfile(dll_path):
+                raise IOError('Path %s does not exist!' % dll_path)
+            dll_name = os.path.basename(dll_path)
 
+            for name, libraries in BLAS_BACKENDS.items():
+                if any(library in dll_name for library in libraries):
+                    break
+            else:
+                raise ValueError(('dynamic library %s not recognized '
+                                  'as a valid BLAS')
+                                 % dll_name)
         self.dll_path = dll_path
 
-        if not os.path.isfile(dll_path):
-            raise IOError('Path %s does not exist!' % dll_path)
-
-        dll_name = os.path.basename(dll_path)
-
-        for name, library in _library_name:
-            if library in dll_name:
-                break
-        else:
-            raise ValueError(('dynamic library %s not recognized '
-                              'as a valid BLAS')
-                             % dll_name)
         if os.name == 'posix':
             ctypes_loader = ctypes.cdll
         elif os.name == 'nt':
@@ -113,7 +118,8 @@ class Blas(object):
         elif self.name == 'blas':
             return 1
         else:
-            raise ValueError
+            raise NotImplementedError('setting the number of threads is not '
+                                      'supported on BLAS %s!' % self.name)
 
     def _get_func(self, function_name):
         return getattr(self.dll, self.name + '_' + function_name)

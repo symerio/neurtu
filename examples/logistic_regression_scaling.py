@@ -45,7 +45,7 @@ print(df.tail())
 # We can use the pandas plotting API (that requires matplotlib) to visualize
 # the results,
 
-ax = df.set_index(['N', 'solver']).wall_time_mean.unstack().plot(marker='o')
+ax = df.wall_time_mean.unstack().plot(marker='o')
 ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_ylabel('Wall time (s)')
@@ -58,7 +58,7 @@ ax.set_title('Run time scaling for LogisticRegression.fit')
 #
 # Similarly the memory scaling is represented below,
 
-ax = df.set_index(['N', 'solver']).peak_memory_mean.unstack().plot(marker='o')
+ax = df.set_index(['N', 'solver']).peak_memory.unstack().plot(marker='o')
 ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_ylabel('Peak memory (MB)')

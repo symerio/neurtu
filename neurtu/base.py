@@ -37,7 +37,10 @@ def _validate_timer_precision(res, func, obj_el, params):
         # `number` parameter of Timer.timeit to get
         # result in the order of 500 ms
 
-        corrected_number = int(timer_threashold / res_mean)
+        if res_mean == 0.0:
+            corrected_number = 10000
+        else:
+            corrected_number = int(timer_threashold / res_mean)
         params = params.copy()
         params['number'] = corrected_number
         gc.collect()

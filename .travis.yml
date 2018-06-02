@@ -5,7 +5,7 @@ sudo: false
 matrix:
   include:
     - python: 2.7
-      env: REQUIREMENTS="numpy==1.8.0 pandas==0.20.0rc1" RUN_COVERAGE=true  INSTALLER="pip"
+      env: REQUIREMENTS="numpy==1.8.0 pandas==0.20.0rc1" RUN_COVERAGE=true  BUILD_DOCS=true INSTALLER="pip"
     - python: 3.4
       env: REQUIREMENTS="numpy pandas==0.20.0rc1" RUN_COVERAGE=true INSTALLER="pip"
     - python: 3.5
@@ -13,7 +13,7 @@ matrix:
     - python: 3.6
       env: REQUIREMENTS="numpy pandas tqdm"  RUN_COVERAGE=true  INSTALLER="conda"
     - python: 3.6
-      env: REQUIREMENTS="numpy pandas tqdm nomkl"  RUN_COVERAGE=true  INSTALLER="conda"
+      env: REQUIREMENTS="numpy pandas tqdm nomkl"  RUN_COVERAGE=true  BUILD_DOCS=true INSTALLER="conda"
     - language: generic
       os: osx
       python: 3.6
@@ -49,6 +49,12 @@ script:
          source activate neurtu-env
       fi
   - pytest -s --doctest-modules --cov=neurtu neurtu/
+  - |
+      if [[ "${BUILD_DOCS}" == "true" ]]; then
+         cd doc/
+         pip install -e requirements.txt
+         make htm
+      fi
 
 after_success:
   - |

@@ -49,8 +49,8 @@ def test_memit_overhead():
     res = memit(delayed(sleep)(0.1))
     assert isinstance(res, dict)
 
-    # measurement error is less than 0.5 MB
-    assert res['peak_memory'] < 0.5
+    # measurement error is less than 1.0 MB
+    assert res['peak_memory'] < 1.0
 
 
 def test_memit_array_allocation():

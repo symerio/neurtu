@@ -22,7 +22,7 @@ y = rng.randint(2, size=(n_samples))
 
 
 def benchmark_cases():
-    for N in np.geomspace(100, n_samples, 5, dtype='int'):
+    for N in np.logspace(np.log10(100), np.log10(n_samples), 5).astype('int'):
         for solver in ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']:
             tags = {'N': N, 'solver': solver}
             model = delayed(LogisticRegression, tags=tags)(
@@ -58,7 +58,7 @@ ax.set_title('Run time scaling for LogisticRegression.fit')
 #
 # Similarly the memory scaling is represented below,
 
-ax = df.set_index(['N', 'solver']).peak_memory.unstack().plot(marker='o')
+ax = df.peak_memory.unstack().plot(marker='o')
 ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_ylabel('Peak memory (MB)')

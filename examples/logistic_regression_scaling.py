@@ -58,7 +58,7 @@ ax.set_title('Run time scaling for LogisticRegression.fit')
 #
 # Similarly the memory scaling is represented below,
 
-ax = df.set_index(['N', 'solver']).peak_memory.unstack().plot(marker='o')
+ax = df.peak_memory.unstack().plot(marker='o')
 ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_ylabel('Peak memory (MB)')

@@ -52,8 +52,8 @@ script:
   - |
       if [[ "${BUILD_DOCS}" == "true" ]]; then
          cd doc/
-         pip install -e requirements.txt
-         make htm
+         pip install -r requirements.txt
+         make html
       fi
 
 after_success:

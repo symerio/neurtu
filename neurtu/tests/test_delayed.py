@@ -14,3 +14,17 @@ def test_set_env():
     assert delayed(func, env={'NEURTU_TEST': 'true'})().compute() == 'true'
 
     assert func() is None
+
+
+def test_infer_tags():
+    obj = delayed(None)(x=1)
+    assert obj.get_tags(infer=True) == [{'x': 1}]
+
+    obj = delayed(None)(y='ze').get(x=3)
+    assert obj.get_tags(infer=True) == [{'x': 3}, {'y': "ze"}]
+
+    obj = delayed(None)(1)
+    assert obj.get_tags(infer=True) == [{'arg_0': 1}]
+
+    obj = delayed(None)(a=1)[23]
+    assert obj.get_tags(infer=True) == [{'arg_0': 23}, {'a': 1}]

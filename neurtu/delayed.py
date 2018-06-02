@@ -109,19 +109,50 @@ class Delayed(object):
                     ' -> {} args={} kwargs={}'
                     .format(self.__func, args_repr, kwargs_repr))
 
-    def get_tags(self):
+    def get_tags(self, infer=False):
         """Get tags passed at init
+
+        Parameters
+        ----------
+        infer : bool, default=False
+          try to infer tags from the passed arguments
 
         Returns
         -------
-        tags : dict
-          a dictionary of tags
+        tags : {dict, list}
+          a dictionary of tags if ``infer`` is False, a list of dictionaries
+          otherwise.
         """
-        if self.__func is None:
-            return self.__tags
+        if infer:
+            # convert positional arguments to kwargs
+            if self.__args and self.__func != '__getattr__':
+                # positional argument names not known
+                args = {'arg_%s' % idx: arg
+                        for idx, arg in enumerate(self.__args)}
+            else:
+                args = {}
+
+            # concatenate args and kwargs into a single dict
+            if self.__kwargs:
+                kwargs = dict(args, **self.__kwargs)
+            else:
+                kwargs = args
+
+            if kwargs:
+                kwargs = [kwargs]
+            else:
+                kwargs = []
+
+            if self.__func is None:
+                return []
+            else:
+                return kwargs + self.__obj.get_tags(infer=infer)
         else:
-            # recursively find the root Delayed object
-            return self.__obj.get_tags()
+            if self.__func is None:
+                return self.__tags
+            else:
+                # recursively find the root Delayed object
+                return self.__obj.get_tags(infer=infer)
 
     def get_env(self):
         """Get environement variables passed at init

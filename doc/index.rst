@@ -8,11 +8,15 @@ neurtu
 
 Simple performance measurement tool
 
-neurtu is a Python benchmarking library with a unified interface for time and memory
-measurements. It aims to provide a convenient API similar to IPython's
-``%timeit`` magic command, but based on delayed evaluation. Parametric benchmarks
-can be used to estimate time and space complexity of algorithms, while pandas integration
+
+
+neurtu is a Python package providing a common interface for multi-metric benchmarks
+(including time and memory measurements). It can can be used to estimate time
+and space complexity of algorithms, while pandas integration
 allows quick analysis and visualization of the results.
+
+Setting the number of threads at runtime in OpenBlas, and MKL is also supported on Linux
+and MacOS.
 
 *neurtu* means "to measure / evaluate" in Basque language.
 

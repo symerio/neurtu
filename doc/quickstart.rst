@@ -1,87 +1,85 @@
 Quickstart
 ==========
 
-Single benchmark
-^^^^^^^^^^^^^^^^
-1. Measuring the run time,
-
-   .. code:: python
-
-       >>> from neurtu import timeit, delayed
-       >>> timeit(delayed(sum)(range(100000)), repeat=3)
-       {'wall_time_max': 0.0018, 'wall_time_mean': 0.0017, 'wall_time_min': 0.0015, 'wall_time_std': 0.00011}
-
-   which will internally call :class:`timeit.Timer`. Similarly to IPython's ``%timeit``, the number of runs
-   will be determined at runtime to mitigate the finite resolution of the timer (on Windows it's 16 ms!). In addition,
-   each evaluation will be repeated 3 times to measure run time statistics.
-
-2. Similarly, the memory use can be measured with,
-
-   .. code:: python
-
-       >>> from neurtu import memit, delayed
-       >>> memit(delayed(sorted)(list(range(100000))))
-       {'peak_memory_max': 0.765, 'peak_memory_mean': 0.757, 'peak_memory_min': 0.753, 'peak_memory_std': 0.00552}
-
-3. Generic benchmarks
-
-   Both :func:`neurtu.timeit` and :func:`neurtu.memit` are aliases for the :class:`Benchmark` class which can be used with one or several metrics,
-
-   .. code:: python
-
-       from neurtu import Benchmark, delayed
-
-       Benchmark(wall_time=True, peak_memory=True)(
-              delayed(sorted)(range(100000)))
-
-
-   Currently supported metrics are ``wall_time``, ``peak_memory`` as well as ``cpu_time`` (Linux and Mac OS only).
-
-
-
-Parametric benchmarks
-^^^^^^^^^^^^^^^^^^^^^
-
-The :func:`neurtu.timeit`, :func:`neurtu.memit` and :class:`neurtu.Benchmark`` also accept as input sequence of delayed objects, tagged with the ``tags`` parameter,
-This can typically be used to determine time or space complexity of some calculation,
+To illustrate neurtu usage, will will benchmark array sorting in numpy. First, we will
+generator of cases,
 
 .. code:: python
 
-    >>> from neurtu import timeit, delayed
-    >>> timeit(delayed(sorted, tags={'N': N})(range(N)) for N in [1000, 10000, 100000])
-            N  wall_time_max  wall_time_mean  wall_time_min  wall_time_std
-    0    1000       0.000024        0.000024       0.000024   5.951794e-08
-    1   10000       0.000319        0.000319       0.000318   4.723035e-07
-    2  100000       0.003695        0.003686       0.003678   7.144085e-06
+    import numpy as np
+    import neurtu
 
+    def cases()
+        rng = np.random.RandomState(42)
 
-the results with be a ``pandas.DataFrame`` if pandas is installed and a list of dictionaries otherwise.
+        for N in [1000, 10000, 100000]:
+            X = rng.rand(N)
+            tags = {'N' : N}
+            yield neurtu.delayed(X, tags=tags).sort()
 
-In general, we can pass any iterable to the benchmark functions. For instance the above example is equivalent to,
-  
-.. code:: python
+that yields a sequence of delayed calculations, each tagged with the parameters defining individual runs.
 
-    >>> from neurtu import timeit, delayed
-    >>> def delayed_cases():
-    ...     for N in [1000, 10000, 100000]:
-    ...         yield delayed(sorted, tags={'N': N})(range(N))
-    >>> timeit(delayed_cases())
-     
-
-Delayed evaluation
-^^^^^^^^^^^^^^^^^^
-Instead of working with a string statement or a callable as ``timeit.Timer`` does, neurtu evaluates delayed objects.
-
-The :func:`delayed`` function is a partial implementation of the :func:`dask.delayed` API. It models operations as a chained list of delayed objects that are not evaluated until the ``compute()`` method is called.
+We can evaluate the run time with,
 
 .. code:: python
 
-  >>> from neurtu import delayed
-  >>> x = delayed('some string').split(' ')[::-1]
-  >>> x
-  <Delayed('some string').split(' ')[slice(None, None, -1)]>
-  >>> x.compute()
-  ['string', 'some']
+    >>> df = neurtu.timeit(cases())
+    >>> print(df)
+            wall_time
+    N
+    1000     0.000014
+    10000    0.000134
+    100000   0.001474
 
-Attribute access, indexing as well as function and method calls are supported. 
-Left function composition (e.g. ``func(delayed(obj))``) and binary operations (e.g. ``delayed(op) + 1``) are currently not supported, neither is the composition of multiple delayed objects, use :func:`dask.delayed` for those.
+which will internally use ``timeit`` module with a sufficient number of evaluation to work around the timer precision
+limitations (similarly to IPython's ``%timeit``). It will also display a progress bar for long running benchmarks,
+and return the results as a ``pandas.DataFrame`` (if pandas is installed).
+
+By default, all evaluations are run with ``repeat=1``. If more statistical confidence is required, this value can
+be increased,
+
+.. code:: python
+
+    >>> neurtu.timeit(cases(), repeat=3)
+           wall_time
+                mean       max       std
+    N
+    1000    0.000012  0.000014  0.000002
+    10000   0.000116  0.000149  0.000029
+    100000  0.001323  0.001714  0.000339
+
+In this case we will get a frame with a
+`pandas.MultiIndex <https://pandas.pydata.org/pandas-docs/stable/advanced.html#multiindex-advanced-indexing>`_ for
+columns, where the first level represents the metric name (``wall_time``) and the second -- the aggregation method.
+By default ``neurtu.timeit`` is called with ``aggregate=['mean', 'max', 'std']`` methods, as supported 
+by the `pandas aggregation API <https://pandas.pydata.org/pandas-docs/version/0.22.0/groupby.html#aggregation>`_. To disable,
+aggregation and obtains timings for individual runs, use ``aggregate=False``.
+See `neurtu.timeit documentation <https://neurtu.readthedocs.io/generated/neurtu.timeit.html>`_ for more details.
+
+To evaluate the peak memory usage, one can use the ``neurtu.memit`` function with the same API,
+
+.. code:: python
+
+    >>> neurtu.memit(cases(), repeat=3)
+            peak_memory
+                   mean  max  std
+    N
+    10000           0.0  0.0  0.0
+    100000          0.0  0.0  0.0
+    1000000         0.0  0.0  0.0
+
+More generally ``neurtu.Benchmark`` supports a wide number of evaluation metrics,
+
+.. code:: python
+
+    >>> bench = neurtu.Benchmark(wall_time=True, cpu_time=True, peak_memory=True)
+    >>> bench(cases)
+             cpu_time  peak_memory  wall_time
+    N
+    10000    0.000100          0.0   0.000142
+    100000   0.001149          0.0   0.001680
+    1000000  0.013677          0.0   0.018347
+
+including [psutil process metrics](https://psutil.readthedocs.io/en/latest/#psutil.Process).
+
+For more information see the :ref:`examples`.

@@ -113,7 +113,7 @@ More generally ``neurtu.Benchmark`` supports a wide number of evaluation metrics
     100000   0.001149          0.0   0.001680
     1000000  0.013677          0.0   0.018347
 
-including [psutil process metrics](https://psutil.readthedocs.io/en/latest/#psutil.Process).
+including `psutil process metrics <https://psutil.readthedocs.io/en/latest/#psutil.Process>`_.
 
 For more information see the `documentation <http://neurtu.readthedocs.io/>`_ and 
 `examples <http://neurtu.readthedocs.io/examples/index.html>`_.

@@ -7,6 +7,8 @@ In this example we will look into the time and space complexity of
 
 """
 
+from collections import OrderedDict
+
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from neurtu import Benchmark, delayed
@@ -24,7 +26,7 @@ y = rng.randint(2, size=(n_samples))
 def benchmark_cases():
     for N in np.logspace(np.log10(100), np.log10(n_samples), 5).astype('int'):
         for solver in ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']:
-            tags = {'N': N, 'solver': solver}
+            tags = OrderedDict(N=N, solver=solver)
             model = delayed(LogisticRegression, tags=tags)(
                                 solver=solver, random_state=rng)
 

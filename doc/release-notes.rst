@@ -3,26 +3,24 @@ Release notes
 
 Version 0.2
 -----------
-*In developpement*
+*July 11, 2018*
 
 New features  
 ^^^^^^^^^^^^
 
- - Runtime BLAS detection and ability to set the number of threads in OpenBlas and
-   MKL BLAS on Linux.  `#15 <https://github.com/symerio/neurtu/pull/15>`_.
-
+ - Runtime detection of the BLAS used by numpy `#14 <https://github.com/symerio/neurtu/pull/14>`_
+ - Ability to set the number of threads in OpenBlas and
+   MKL BLAS at runtime on Linux.  `#15 <https://github.com/symerio/neurtu/pull/15>`_.
 
 Enhancements
 ^^^^^^^^^^^^
+ - Better test coverage
+ - Documentation improvements
+ - In depth refactoring of the benchmarking code
 
 API changes
 ^^^^^^^^^^^
-
-Bug fixes
-^^^^^^^^^
-
-
-
+ - The API of ``timeit``, ``memit``, ``Benchmark`` changed significantly with respect to v0.1
 
 Version 0.1
 -----------

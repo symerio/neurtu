@@ -73,7 +73,7 @@ More generally ``neurtu.Benchmark`` supports a wide number of evaluation metrics
 .. code:: python
 
     >>> bench = neurtu.Benchmark(wall_time=True, cpu_time=True, peak_memory=True)
-    >>> bench(cases)
+    >>> bench(cases())
              cpu_time  peak_memory  wall_time
     N
     10000    0.000100          0.0   0.000142

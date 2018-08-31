@@ -5,7 +5,7 @@ sudo: false
 matrix:
   include:
     - python: 2.7
-      env: REQUIREMENTS="numpy==1.8.0 pandas==0.20.0rc1" RUN_COVERAGE=true  BUILD_DOCS=true INSTALLER="pip"
+      env: REQUIREMENTS="numpy==1.8.0 pandas==0.20.0rc1" RUN_COVERAGE=true  BUILD_DOCS=false INSTALLER="pip"
     - python: 3.4
       env: REQUIREMENTS="numpy pandas==0.20.0rc1" RUN_COVERAGE=true INSTALLER="pip"
     - python: 3.5

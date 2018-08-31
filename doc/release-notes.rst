@@ -3,7 +3,7 @@ Release notes
 
 Version 0.2
 -----------
-*July 11, 2018*
+*August 28, 2018*
 
 New features  
 ^^^^^^^^^^^^

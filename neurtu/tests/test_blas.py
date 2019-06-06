@@ -70,9 +70,6 @@ def test_blas_set_threads(blas_name):
     assert num_threads_0 > 0
     assert isinstance(num_threads_0, int)
 
-    if 'CI' in os.environ:
-        assert num_threads_0 > 1
-
     num_threads_1 = 1
 
     # setting the number of threads without a context manager

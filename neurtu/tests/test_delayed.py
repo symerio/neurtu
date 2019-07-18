@@ -14,3 +14,12 @@ def test_set_env():
     assert delayed(func, env={'NEURTU_TEST': 'true'})().compute() == 'true'
 
     assert func() is None
+
+
+def test_get_args_kwargs():
+    def func(pos_arg, key_arg=None):
+        pass
+
+    delayed_obj = delayed(func)('arg', key_arg='kwarg')
+    assert delayed_obj.get_args()[0] == 'arg'
+    assert delayed_obj.get_kwargs()[0] == {'key_arg': 'kwarg'}

@@ -1,6 +1,14 @@
 Release notes
 =============
 
+Version 0.3
+-----------
+*In development*
+
+Enhancements
+^^^^^^^^^^^^
+ - add ``get_args`` and ``get_kwargs`` to ``Delayed`` object.
+
 Version 0.2
 -----------
 *August 28, 2018*

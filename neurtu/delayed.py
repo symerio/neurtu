@@ -14,8 +14,8 @@ class Delayed(object):
       name of the object (build-in) attribute to call
     args: args
       positional arguments passed to ``func``
-    args: args
-      arguments passed to ``func``
+    kwargs: dict
+      keyword arguments passed to ``func``
     tags: dict
       optional tags for the delayed object
     env: dict
@@ -136,6 +136,32 @@ class Delayed(object):
         else:
             # recursively find the root Delayed object
             return self.__obj.get_env()
+
+    def get_args(self):
+        """Get all arguments passed.
+
+        Returns
+        -------
+        args : list
+            a list containing all arguments
+        """
+        if self.__func is None:
+            return list(self.__args)
+        else:
+            return list(self.__args) + self.__obj.get_args()
+
+    def get_kwargs(self):
+        """Get all keyword arguments passed.
+
+        Returns
+        -------
+        kwargs : list of dict
+            a list containing all keyword arguments
+        """
+        if self.__func is None:
+            return [self.__kwargs]
+        else:
+            return [self.__kwargs] + self.__obj.get_kwargs()
 
 
 def _is_delayed(obj):

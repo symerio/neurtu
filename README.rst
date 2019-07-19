@@ -12,9 +12,6 @@ neurtu is a Python package providing a common interface for multi-metric benchma
 and space complexity of algorithms, while pandas integration
 allows quick analysis and visualization of the results.
 
-Setting the number of threads at runtime in OpenBlas, and MKL is also supported on Linux
-and MacOS.
-
 *neurtu* means "to measure / evaluate" in Basque language.
 
 See the `documentation <http://neurtu.readthedocs.io/>`_ for more details.

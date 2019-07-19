@@ -5,9 +5,16 @@ Version 0.3
 -----------
 *In development*
 
+API changes
+^^^^^^^^^^^
+
+ - Functions to set the number of BLAS threads at runtime were removed
+   in favour of using `threadpoolctl
+   <https://github.com/joblib/threadpoolctl>`_.
+
 Enhancements
 ^^^^^^^^^^^^
- - add ``get_args`` and ``get_kwargs`` to ``Delayed`` object.
+ - Add ``get_args`` and ``get_kwargs`` to ``Delayed`` object.
  - Better progress bars in Jupyter notebooks with the ``tqdm.auto``
    backend.
 

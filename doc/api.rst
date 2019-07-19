@@ -3,8 +3,6 @@ API Reference
 
 .. currentmodule:: neurtu
 
-Benchmarking
-------------
 
 .. autosummary::
     :toctree: ./generated/
@@ -14,11 +12,3 @@ Benchmarking
     neurtu.Benchmark
     neurtu.delayed
 
-BLAS tools
------------
-
-.. autosummary::
-    :toctree: ./generated/
-   
-    neurtu.blas.detect_blas
-    neurtu.blas.Blas

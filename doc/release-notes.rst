@@ -8,6 +8,8 @@ Version 0.3
 Enhancements
 ^^^^^^^^^^^^
  - add ``get_args`` and ``get_kwargs`` to ``Delayed`` object.
+ - Better progress bars in Jupyter notebooks with the ``tqdm.auto``
+   backend.
 
 Version 0.2
 -----------

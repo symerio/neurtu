@@ -70,9 +70,6 @@ def test_blas_set_threads(blas_name):
     assert num_threads_0 > 0
     assert isinstance(num_threads_0, int)
 
-    if 'CI' in os.environ:
-        assert num_threads_0 > 1
-
     num_threads_1 = 1
 
     # setting the number of threads without a context manager
@@ -107,6 +104,5 @@ def test_blas_autodetect():
                     reason='Windows only test')
 @pytest.mark.skipif(np is None, reason='numpy not installed')
 def test_blas_fails_on_windows():
-    with pytest.raises(OSError) as excinfo:
+    with pytest.raises(OSError, match="is not a valid Win32 application"):
         Blas()
-    assert "is not a valid Win32 application" in str(excinfo.value)

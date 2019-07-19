@@ -9,7 +9,7 @@ import timeit as cpython_timeit
 import gc
 
 try:
-    from tqdm import tqdm
+    from tqdm.auto import tqdm
 except ImportError:  # pragma: no cover
     tqdm = None
 
@@ -77,7 +77,7 @@ class _ProgressBar(object):
         elif self.pbar is None:
             dt = cpython_timeit.default_timer() - self.t0
             if dt * self.N / self.idx > self.delay:
-                self.pbar = tqdm(total=self.N)
+                self.pbar = tqdm(total=self.N, leave=False)
                 self.pbar.update(self.idx)
         else:
             self.pbar.update(1)

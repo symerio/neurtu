@@ -21,6 +21,7 @@ Enhancements
 Bug fixes
 ^^^^^^^^^
  - Fix progress bar rendering when ``repeat>1``.
+ - Fix warnings due to ``collection.abc``.
 
 Version 0.2
 -----------

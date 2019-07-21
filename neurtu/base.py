@@ -4,7 +4,7 @@
 from __future__ import division
 
 import sys
-import collections
+from collections.abc import Iterable
 import timeit as cpython_timeit
 import gc
 
@@ -18,9 +18,6 @@ from .delayed import _is_delayed
 from .utils import import_or_none
 from .metrics import measure_wall_time, measure_cpu_time
 from .metrics import measure_peak_memory
-
-
-__version__ = '0.1.dev0'
 
 
 def _validate_timer_precision(res, func, obj_el, params):
@@ -168,7 +165,7 @@ class Benchmark(object):
         else:
             iterable_input = True
 
-        if not isinstance(obj, collections.Iterable):
+        if not isinstance(obj, Iterable):
             raise ValueError(('obj=%s must be either a Delayed object or a '
                               'iterable of delayed objects!') % obj)
 

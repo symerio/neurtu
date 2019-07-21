@@ -3,7 +3,7 @@ Release notes
 
 Version 0.3
 -----------
-*In development*
+*July 21, 2019*
 
 API changes
 ^^^^^^^^^^^

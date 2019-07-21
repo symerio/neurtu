@@ -189,7 +189,10 @@ class Benchmark(object):
                                  % (len(obj), len(tags_all)))
 
         db = []
-        pbar = _ProgressBar(len(obj)*len(self.metrics), self.progress_bar)
+        pbar = _ProgressBar(
+                len(obj)*len(self.metrics)*self.repeat,
+                self.progress_bar
+        )
         for runid in range(self.repeat):
             for idx, obj_el in enumerate(obj):
                 res = self._evaluate_single(obj_el, pbar)

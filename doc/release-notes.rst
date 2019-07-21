@@ -18,6 +18,10 @@ Enhancements
  - Better progress bars in Jupyter notebooks with the ``tqdm.auto``
    backend.
 
+Bug fixes
+^^^^^^^^^
+ - Fix progress bar rendering when ``repeat>1``.
+
 Version 0.2
 -----------
 *August 28, 2018*

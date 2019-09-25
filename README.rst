@@ -19,7 +19,7 @@ See the `documentation <http://neurtu.readthedocs.io/>`_ for more details.
 Installation
 ------------
 
-neurtu requires Python 2.7 or 3.4+, it can be installed with,
+neurtu requires 3.5+, it can be installed with,
 
 .. code::
 

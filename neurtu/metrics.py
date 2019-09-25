@@ -3,7 +3,9 @@
 
 from __future__ import division
 
+import sys
 import itertools
+import time
 import timeit as cpython_timeit
 import gc
 
@@ -38,8 +40,16 @@ class Timer(cpython_timeit.Timer):
 
 
 def measure_wall_time(obj, number=1):
-    timer = Timer(obj.compute, timer=cpython_timeit.default_timer)
+    if sys.version_info >= (3, 7):
+        sys_timer = time.perf_counter_ns
+    else:
+        sys_timer = cpython_timeit.default_timer
+
+    timer = Timer(obj.compute, timer=sys_timer)
     dt = timer.timeit(number)
+
+    if sys.version_info >= (3, 7):
+        dt = dt*1e-9  # ns to s
     return dt / number
 
 

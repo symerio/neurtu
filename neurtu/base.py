@@ -18,29 +18,31 @@ from .metrics import measure_wall_time, measure_cpu_time
 from .metrics import measure_peak_memory
 
 
-def _validate_timer_precision(res, func, obj_el, params):
+def _validate_timer_precision(res_mean, func, obj_el, params):
     """For timing measurements, increase the number of iterations
     if the precision is unsufficient"""
-    res_mean = res
     if sys.platform in ['win32', 'darwin']:
-        timer_threashold = 1.0
+        timer_threashold = 0.5
     else:
-        timer_threashold = 0.2
+        timer_threashold = 0.1
     if res_mean < timer_threashold:
         # if the measured timeing is below the threashold,
         # it won't be very accurate. Increase the
         # `number` parameter of Timer.timeit to get
-        # result in the order of 500 ms
+        # result in the order of 500 ms on Windows, Mac OS
+        # and 100ms on Linux
 
         if res_mean == 0.0:
-            corrected_number = 10000
+            corrected_number = 1000
         else:
             corrected_number = int(timer_threashold / res_mean)
+        if corrected_number == 1:
+            return res_mean
         params = params.copy()
         params['number'] = corrected_number
         gc.collect()
-        res = func(obj_el, **params)
-    return res
+        res_mean = func(obj_el, **params)
+    return res_mean
 
 
 class _ProgressBar(object):

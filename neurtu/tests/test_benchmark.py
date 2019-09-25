@@ -91,8 +91,8 @@ def test_dataframe_conversion(repeat, aggregate):
         assert res.index.names == ['idx']
         if repeat > 1:
             assert isinstance(res.columns, pd.MultiIndex)
-            assert list(res.columns.levels[0]) == metrics
-            assert list(res.columns.levels[1]) == aggregate
+            assert set(res.columns.levels[0]) == set(metrics)
+            assert set(res.columns.levels[1]) == set(aggregate)
         else:
             assert isinstance(res.columns, pd.Index)
     else:
@@ -102,7 +102,7 @@ def test_dataframe_conversion(repeat, aggregate):
         else:
             assert res.index.names == ['idx']
         assert isinstance(res.columns, pd.Index)
-        assert list(res.columns) == metrics
+        assert set(res.columns) == set(metrics)
 
 
 # Handling of optional parameters

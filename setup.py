@@ -13,6 +13,7 @@ setup(
     packages=find_packages(),
     url='https://github.com/symerio/neurtu',
     install_requires=['memory_profiler', 'psutil', 'tqdm'],
+    python_requires=">=3.5",
     classifiers=['Development Status :: 4 - Beta',
                  'Intended Audience :: Science/Research',
                  'Intended Audience :: Developers',

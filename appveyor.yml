@@ -3,10 +3,6 @@ build: false
 environment:
 
   matrix:
-    - PYTHON_VERSION: "2.7.x"
-      PYTHON_ARCH: "64"
-      MINICONDA: C:\Miniconda-x64
-      REQUIREMENTS: "pytest numpy"
     - PYTHON_VERSION: "3.6.x"
       PYTHON_ARCH: "64"
       MINICONDA: C:\Miniconda36-x64
